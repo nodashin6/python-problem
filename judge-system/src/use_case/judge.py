@@ -188,3 +188,41 @@ class JudgeUserCode:
             code=code,
             results=results
         )
+        
+        
+class AppUseCase:
+    def __init__(self, problem: models.Problem):
+        self.problem = problem
+        
+    def read_problem(self) -> models.Problem:
+        # 問題の情報を読み込む
+        problem_path = PROBLEM_DIR / f"{self.problem.id}" / "problem.md"
+        with open(problem_path, "r") as f:
+            problem_md = f.read()
+        
+        return models.Problem(
+            id=self.problem.id,
+            markdown=problem_md
+        )
+
+
+class ReadProblemListUseCase:
+    def __call__(self) -> list[models.Problem]:
+        # 問題のリストを読み込む
+        
+        # ----------------------------------------
+        # problems.yaml
+        # - 001:
+        #     title: "Hello World"
+        # - 002:
+        #     title: "Addition of Two Numbers"
+        # ----------------------------------------
+        
+        yaml_path = PROBLEM_DIR / "problems.yaml"
+        with open(yaml_path, "r") as f:
+            rows = yaml.safe_load(f)
+        print(rows)
+        problems = []
+        for row in rows:
+            problems.append(models.Problem(id=row["id"], title=row["title"]))
+        return problems

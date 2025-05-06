@@ -3,6 +3,8 @@ from pydantic import BaseModel, Field
 
 class Problem(BaseModel):
     id: str
+    title: str | None = None
+    markdown : str | None = None
 
 class Stdin(BaseModel):
     id: str | None = None
