@@ -53,6 +53,12 @@ type JudgeResponse = {
   code: string;
   results: JudgeResult[];
   error?: string;
+  submission_id?: string; // 提出ID
+  problem_status?: {
+    solved: boolean;
+    solved_at: string | null;
+    submission_count: number;
+  };
 };
 
 export default function ProblemPage() {
@@ -94,6 +100,16 @@ export default function ProblemPage() {
       
       const judgeResult = await judgeCode(problemId, code);
       setResult(judgeResult);
+      
+      // 結果に含まれるproblem_statusを問題オブジェクトにも反映させる
+      if (judgeResult.problem_status && problem) {
+        setProblem({
+          ...problem,
+          solved: judgeResult.problem_status.solved,
+          solved_at: judgeResult.problem_status.solved_at,
+          submission_count: judgeResult.problem_status.submission_count
+        });
+      }
     } catch (error) {
       console.error('ジャッジに失敗しました', error);
       setResult({ 
@@ -152,7 +168,13 @@ export default function ProblemPage() {
           </Link>
           
           {/* 問題カードコンポーネント */}
-          <ProblemCard title={title} markdownContent={problem.markdown} />
+          <ProblemCard 
+            title={title} 
+            markdownContent={problem.markdown} 
+            level={problem.level}
+            solved={problem.solved}
+            submission_count={problem.submission_count}
+          />
           
           {/* 解答入力フォームコンポーネント */}
           <div className="card-modern">

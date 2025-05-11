@@ -7,13 +7,14 @@ import time
 import resource
 import copy
 from pathlib import Path
-from src.const import TESTCASE_DIR, PRJ_DIR, IN_DIR, OUT_DIR, PROBLEM_DIR
+from src.const import TESTCASE_DIR, PRJ_DIR, IN_DIR, OUT_DIR, PROBLEM_DIR, DEFAULT_PROBLEM_SET
 from src.domain import models
 
 
 class TestcaseLoader:
-    def __init__(self, problem: models.Problem):
+    def __init__(self, problem: models.Problem, problem_set: str = DEFAULT_PROBLEM_SET):
         self.problem = problem
+        self.problem_set = problem_set
         
     def __iter__(self):
         testcase_names = self.load_testcase_names()
@@ -21,7 +22,8 @@ class TestcaseLoader:
             yield self.load_testcase(testcase_name)
             
     def load_testcase_names(self) -> list[str]:
-        yaml_path = PROBLEM_DIR / f"{self.problem.id}" / "testcase.yaml"
+        # 新しいパス: problems/問題集/問題ID/testcase.yaml
+        yaml_path = PROBLEM_DIR / self.problem_set / f"{self.problem.id}" / "testcase.yaml"
         with open(yaml_path, "r") as f:
             testcase_names = yaml.safe_load(f)
         print(testcase_names)
@@ -31,10 +33,12 @@ class TestcaseLoader:
         return testcase_names
             
     def get_input_path(self, testcase_name: str):
-        return IN_DIR / f"{self.problem.id}" / f"{testcase_name}.txt"
+        # 新しいパス: problems/問題集/問題ID/testcases/in/テストケース名.txt
+        return PROBLEM_DIR / self.problem_set / f"{self.problem.id}" / "testcases" / "in" / f"{testcase_name}.txt"
     
     def get_output_path(self, testcase_name: str):
-        return OUT_DIR / f"{self.problem.id}" / f"{testcase_name}.txt"
+        # 新しいパス: problems/問題集/問題ID/testcases/out/テストケース名.txt
+        return PROBLEM_DIR / self.problem_set / f"{self.problem.id}" / "testcases" / "out" / f"{testcase_name}.txt"
     
     def load_testcase(self, testcase_name: str):
         in_path = self.get_input_path(testcase_name)
@@ -59,8 +63,9 @@ class TestcaseLoader:
 
 
 class JudgeUserCode:
-    def __init__(self, problem: models.Problem):
+    def __init__(self, problem: models.Problem, problem_set: str = DEFAULT_PROBLEM_SET):
         self.problem = problem
+        self.problem_set = problem_set
         self.TIME_LIMIT = 5  # 5秒のタイムリミット
         self.MEMORY_LIMIT = 256 * 1024 * 1024  # 256MBのメモリ制限
         
@@ -153,7 +158,7 @@ class JudgeUserCode:
     
     def __call__(self, code: str):
         results = []
-        testcase_loader = TestcaseLoader(self.problem)
+        testcase_loader = TestcaseLoader(self.problem, self.problem_set)
         
         for testcase in testcase_loader:
             is_ac, result_metadata = self.judge(code, testcase.stdin.content, testcase.stdout.content)
@@ -191,12 +196,13 @@ class JudgeUserCode:
         
         
 class AppUseCase:
-    def __init__(self, problem: models.Problem):
+    def __init__(self, problem: models.Problem, problem_set: str = DEFAULT_PROBLEM_SET):
         self.problem = problem
+        self.problem_set = problem_set
         
     def read_problem(self) -> models.Problem:
-        # 問題の情報を読み込む
-        problem_path = PROBLEM_DIR / f"{self.problem.id}" / "problem.md"
+        # 新しいパス: problems/問題集/問題ID/problem/ja.md
+        problem_path = PROBLEM_DIR / self.problem_set / f"{self.problem.id}" / "problem" / "ja.md"
         with open(problem_path, "r") as f:
             problem_md = f.read()
         
@@ -207,22 +213,34 @@ class AppUseCase:
 
 
 class ReadProblemListUseCase:
+    def __init__(self, problem_set: str = DEFAULT_PROBLEM_SET):
+        self.problem_set = problem_set
+        
     def __call__(self) -> list[models.Problem]:
         # 問題のリストを読み込む
+        # 新しいパス: problems/問題集/problems.yaml
         
         # ----------------------------------------
         # problems.yaml
-        # - 001:
-        #     title: "Hello World"
-        # - 002:
-        #     title: "Addition of Two Numbers"
+        # - id: "001"
+        #   title: "Hello World"
+        #   level: 1
+        # - id: "002"
+        #   title: "Addition of Two Numbers" 
+        #   level: 2
         # ----------------------------------------
         
-        yaml_path = PROBLEM_DIR / "problems.yaml"
+        yaml_path = PROBLEM_DIR / self.problem_set / "problems.yaml"
         with open(yaml_path, "r") as f:
             rows = yaml.safe_load(f)
         print(rows)
         problems = []
         for row in rows:
-            problems.append(models.Problem(id=row["id"], title=row["title"]))
+            # レベル情報も取得する
+            level = row.get("level", 1)  # デフォルトは1
+            problems.append(models.Problem(
+                id=row["id"], 
+                title=row["title"],
+                level=level
+            ))
         return problems

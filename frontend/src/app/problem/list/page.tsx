@@ -79,6 +79,9 @@ export default function ProblemListPage() {
                       title={title}
                       description={content}
                       isListItem={true}
+                      level={problem.level}
+                      solved={problem.solved}
+                      submission_count={problem.submission_count}
                     />
                   </motion.div>
                 );
