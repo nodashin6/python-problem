@@ -80,6 +80,34 @@ python-versions = ">=3.6"
 all = ["ruff (>=0.6.2)", "mypy (>=1.11.2)", "pytest (>=8.3.2)", "flake8 (>=7.1.1)"]
 
 [[package]]
+name = "iniconfig"
+version = "2.1.0"
+description = "brain-dead simple config-ini parsing"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[[package]]
+name = "packaging"
+version = "25.0"
+description = "Core utilities for Python packages"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[[package]]
+name = "pluggy"
+version = "1.5.0"
+description = "plugin and hook calling mechanisms for python"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[package.extras]
+dev = ["pre-commit", "tox"]
+testing = ["pytest", "pytest-benchmark"]
+
+[[package]]
 name = "pydantic"
 version = "2.11.4"
 description = "Data validation using Python type hints"
@@ -107,6 +135,23 @@ python-versions = ">=3.9"
 
 [package.dependencies]
 typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
+
+[[package]]
+name = "pytest"
+version = "8.3.5"
+description = "pytest: simple powerful testing with Python"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[package.dependencies]
+colorama = {version = "*", markers = "sys_platform == \"win32\""}
+iniconfig = "*"
+packaging = "*"
+pluggy = ">=1.5,<2"
+
+[package.extras]
+dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
 
 [[package]]
 name = "pyyaml"
@@ -175,7 +220,7 @@ standard = ["colorama (>=0.4)", "httptools (>=0.6.3)", "python-dotenv (>=0.13)",
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.12"
-content-hash = "83268f83f0033bd29b36aa76d99f0f5d8ea20464675a26844e29f6e9640a4852"
+content-hash = "2b28fdc220d23bf79642e11a033aa8fc1a3f626b3a0ac64f97bc73129eb24fe7"
 
 [metadata.files]
 annotated-types = []
@@ -185,8 +230,12 @@ colorama = []
 fastapi = []
 h11 = []
 idna = []
+iniconfig = []
+packaging = []
+pluggy = []
 pydantic = []
 pydantic-core = []
+pytest = []
 pyyaml = []
 sniffio = []
 starlette = []

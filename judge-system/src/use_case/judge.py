@@ -11,7 +11,7 @@ from src.const import TESTCASE_DIR, PRJ_DIR, IN_DIR, OUT_DIR, PROBLEM_DIR, DEFAU
 from src.domain import models
 
 
-class TestcaseLoader:
+class CaseLoader:
     def __init__(self, problem: models.Problem, problem_set: str = DEFAULT_PROBLEM_SET):
         self.problem = problem
         self.problem_set = problem_set
@@ -62,6 +62,12 @@ class TestcaseLoader:
         )
 
 
+class JudgeResult:
+    def __init__(self, is_ac: bool, metadata: models.JudgeResultMetadata):
+        self.is_ac = is_ac
+        self.metadata = metadata
+
+
 class JudgeUserCode:
     def __init__(self, problem: models.Problem, problem_set: str = DEFAULT_PROBLEM_SET):
         self.problem = problem
@@ -69,7 +75,7 @@ class JudgeUserCode:
         self.TIME_LIMIT = 5  # 5秒のタイムリミット
         self.MEMORY_LIMIT = 256 * 1024 * 1024  # 256MBのメモリ制限
         
-    def judge(self, code: str, stdin: str, expected_stdout: str) -> tuple[bool, models.JudgeResultMetadata]:
+    def judge(self, code: str, stdin: str, expected_stdout: str) -> JudgeResult:
         # 一時ファイルにコードを書き込む
         with tempfile.NamedTemporaryFile(suffix='.py', delete=False) as temp_file:
             temp_file_path = temp_file.name
@@ -107,13 +113,14 @@ class JudgeUserCode:
             # 結果の判定
             if return_code != 0:
                 # 実行時エラー
-                return models.JudgeResultMetadata(
+                metadata = models.JudgeResultMetadata(
                     memory_used=None,
                     time_used=execution_time,
                     compile_error=None,
                     runtime_error=stderr,
                     output=stdout
                 )
+                return JudgeResult(False, metadata)
             
             # 出力の比較（空白・改行を正規化）
             stdout = stdout.strip()
@@ -127,7 +134,7 @@ class JudgeUserCode:
                 runtime_error=None,
                 output=stdout
             )
-            return is_ac, metadata
+            return JudgeResult(is_ac, metadata)
             
         except subprocess.TimeoutExpired:
             # タイムアウト
@@ -138,7 +145,7 @@ class JudgeUserCode:
                 runtime_error="Time Limit Exceeded",
                 output=None
             )
-            return False, metadata
+            return JudgeResult(False, metadata)
         
         except Exception as e:
             # その他のエラー
@@ -149,7 +156,7 @@ class JudgeUserCode:
                 runtime_error=str(e),
                 output=None
             )
-            return False, metadata
+            return JudgeResult(False, metadata)
         
         finally:
             # 一時ファイルを削除
@@ -158,30 +165,30 @@ class JudgeUserCode:
     
     def __call__(self, code: str):
         results = []
-        testcase_loader = TestcaseLoader(self.problem, self.problem_set)
+        testcase_loader = CaseLoader(self.problem, self.problem_set)
         
         for testcase in testcase_loader:
-            is_ac, result_metadata = self.judge(code, testcase.stdin.content, testcase.stdout.content)
+            result = self.judge(code, testcase.stdin.content, testcase.stdout.content)
             
             # ステータスを設定
-            if is_ac:
+            if result.is_ac:
                 status = "AC"
             else:
                 status = "WA"
-                if result_metadata.runtime_error:
+                if result.metadata.runtime_error:
                     status = "RE"
-                elif result_metadata.time_used > self.TIME_LIMIT * 1000:
+                elif result.metadata.time_used and result.metadata.time_used > self.TIME_LIMIT * 1000:
                     status = "TLE"
-                elif result_metadata.compile_error:
+                elif result.metadata.compile_error:
                     status = "CE"
             
             # 結果オブジェクトを作成
             judge_result = models.JudgeResult(
                 id=f"{self.problem.id}_{testcase.id}",
-                problem={"id": self.problem.id},  # 辞書で渡す
+                problem=self.problem,  # オブジェクトで渡す
                 test_case=testcase,
                 status=status,
-                metadata=result_metadata
+                metadata=result.metadata
             )
             
             results.append(judge_result)
@@ -189,7 +196,7 @@ class JudgeUserCode:
         # すべてのテストケース結果を返す
         return models.JudgeResponse(
             id=f"judge_{self.problem.id}",
-            problem={"id": self.problem.id},  # 辞書で渡す
+            problem=self.problem,  # オブジェクトで渡す
             code=code,
             results=results
         )
