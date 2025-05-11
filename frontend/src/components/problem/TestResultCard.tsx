@@ -5,6 +5,7 @@ export interface TestResult {
   id: string;
   status: string;
   test_case: {
+    id: string; // idフィールドを追加
     name: string;
     stdin: {
       content: string;
@@ -17,7 +18,7 @@ export interface TestResult {
     output?: string;
     runtime_error?: string;
     compile_error?: string;
-    time_used?: string;
+    time_used?: number; // numberに変更
   };
 }
 

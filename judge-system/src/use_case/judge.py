@@ -7,6 +7,7 @@ import time
 import resource
 import copy
 from pathlib import Path
+from typing import Dict, Any, Optional, Callable
 from src.const import TESTCASE_DIR, PRJ_DIR, IN_DIR, OUT_DIR, PROBLEM_DIR, DEFAULT_PROBLEM_SET
 from src.domain import models
 
@@ -163,11 +164,38 @@ class JudgeUserCode:
             os.unlink(temp_file_path)
     
     
-    def __call__(self, code: str):
+    def __call__(self, code: str, progress_callback: Optional[Callable[[str, Dict[str, Any]], None]] = None):
+        """
+        コードをジャッジし、テストケースごとに進捗状況をコールバックで報告する
+        
+        Args:
+            code (str): 評価するPythonコード
+            progress_callback (Callable): テストケースごとの進捗状況を報告するコールバック関数
+                - testcase_id: テストケースのID
+                - result: テストケースの結果
+        
+        Returns:
+            JudgeResponse: ジャッジの結果
+        """
         results = []
         testcase_loader = CaseLoader(self.problem, self.problem_set)
         
+        # テストケース数を取得
+        testcase_names = testcase_loader.load_testcase_names()
+        total_testcases = len(testcase_names)
+        processed_testcases = 0
+        
         for testcase in testcase_loader:
+            # テストケース処理中の状態を報告
+            if progress_callback:
+                progress_callback(testcase.id, {
+                    "status": "processing",
+                    "current": processed_testcases + 1,
+                    "total": total_testcases,
+                    "testcase_id": testcase.id
+                })
+            
+            # テストケースを処理
             result = self.judge(code, testcase.stdin.content, testcase.stdout.content)
             
             # ステータスを設定
@@ -192,6 +220,20 @@ class JudgeUserCode:
             )
             
             results.append(judge_result)
+            processed_testcases += 1
+            
+            # テストケース処理完了の状態を報告
+            if progress_callback:
+                progress_callback(testcase.id, {
+                    "status": "completed",
+                    "current": processed_testcases,
+                    "total": total_testcases,
+                    "testcase_id": testcase.id,
+                    "test_result": {
+                        "status": status,
+                        "time_used": result.metadata.time_used
+                    }
+                })
         
         # すべてのテストケース結果を返す
         return models.JudgeResponse(
