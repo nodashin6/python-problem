@@ -1,9 +1,7 @@
-<div align="center">
-
 > [!NOTE]
-> **開発中です！** 本パッケージは現在PoCフェーズです。
+> **開発中!!!** 本パッケージは現在PoCフェーズの段階であることをご留意ください。
 
-
+<div align="center">
 
 # 🐍 Python Problem
 
