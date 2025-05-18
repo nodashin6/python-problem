@@ -6,7 +6,7 @@ export type Stdio = {
   content: string;
 }
 
-export type TestCase = {
+export type JudgeCase = {
   id: string;
   name: string;
   problem: {
@@ -31,7 +31,7 @@ export type JudgeResult = {
   problem: {
     id: string;
   };
-  test_case: TestCase,
+  judge_case: JudgeCase,
   status: string;
   metadata: JudgeReusltMetadata;
 };

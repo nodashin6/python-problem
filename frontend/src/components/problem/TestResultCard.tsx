@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 export interface TestResult {
   id: string;
   status: string;
-  test_case: {
+  judge_case: {
     id: string; // idフィールドを追加
     name: string;
     stdin: {
@@ -37,7 +37,7 @@ export const TestResultCard: React.FC<TestResultCardProps> = ({ testResult }) =>
           : 'bg-gradient-to-r from-red-500 to-rose-600'
       }`}>
         <div className="flex items-center justify-between">
-          <h4 className="font-bold">テストケース {testResult.test_case.name}</h4>
+          <h4 className="font-bold">テストケース {testResult.judge_case.name}</h4>
           <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${
             isPassed 
               ? 'bg-green-100 text-green-800' 
@@ -53,13 +53,13 @@ export const TestResultCard: React.FC<TestResultCardProps> = ({ testResult }) =>
           <div className="test-result-box">
             <p className="text-sm font-medium text-gray-600 mb-2">入力:</p>
             <pre className="whitespace-pre-wrap text-sm bg-white p-3 rounded-lg border border-gray-200 overflow-auto max-h-40">
-              {testResult.test_case.stdin.content || '(入力なし)'}
+              {testResult.judge_case.stdin.content || '(入力なし)'}
             </pre>
           </div>
           <div className="test-result-box">
             <p className="text-sm font-medium text-gray-600 mb-2">期待される出力:</p>
             <pre className="whitespace-pre-wrap text-sm bg-white p-3 rounded-lg border border-gray-200 overflow-auto max-h-40">
-              {testResult.test_case.stdout.content}
+              {testResult.judge_case.stdout.content}
             </pre>
           </div>
         </div>

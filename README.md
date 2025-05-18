@@ -1,5 +1,10 @@
 <div align="center">
 
+> [!NOTE]
+> **開発中です！** 本パッケージは現在PoCフェーズです。
+
+
+
 # 🐍 Python Problem
 
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg?logo=python&logoColor=white)](https://www.python.org/)

@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 // カスタムフック
 import { useProblem } from '@/hooks/useProblem';
 import { useSubmission } from '@/hooks/useSubmission';
-import { useTestCases, convertToTestResult } from '@/hooks/useTestCases';
+import { useJudgeCases, convertToTestResult } from '@/hooks/useJudgeCases';
 
 // コンポーネント
 import { ProblemCard } from '@/components/problem/ProblemCard';
@@ -38,42 +38,42 @@ export default function ProblemPage() {
   } = useSubmission(problemId);
   
   const {
-    availableTestCases,
-    selectedTestCase,
-    handleTestCaseSelect,
-    loadTestCases
-  } = useTestCases(problemId);
+    availableJudgeCases,
+    selectedJudgeCase,
+    handleJudgeCaseSelect,
+    loadJudgeCases
+  } = useJudgeCases(problemId);
 
   // TestResult型に変換された結果
   const testResults = result?.results ? result.results.map(convertToTestResult) : undefined;
 
   // 進行中のテストケース情報と完了したテストケースIDの取得
-  const pendingTestCaseIds = judgeStatus?.progress?.testcases 
-    ? Object.keys(judgeStatus.progress.testcases) 
+  const pendingJudgeCaseIds = judgeStatus?.progress?.JudgeCases 
+    ? Object.keys(judgeStatus.progress.JudgeCases) 
     : [];
   
   // 結果が返ってきた場合は結果からテストケースIDを取得
-  const completedTestCaseIds = testResults ? testResults.map(r => r.test_case.id) : [];
+  const completedJudgeCaseIds = testResults ? testResults.map(r => r.judge_case.id) : [];
   
   // テストケースリスト管理
-  const [activeTestCaseIds, setActiveTestCaseIds] = useState<string[]>([]);
+  const [activeJudgeCaseIds, setActiveJudgeCaseIds] = useState<string[]>([]);
   
   // テストケースリストを更新
   useEffect(() => {
     // ジャッジ実行中か結果がある場合は、完了 or 進行中のテストケースを表示
     if (submitting || isPolling || result) {
-      const newTestCaseIds = completedTestCaseIds.length > 0 
-        ? completedTestCaseIds 
-        : pendingTestCaseIds;
+      const newJudgeCaseIds = completedJudgeCaseIds.length > 0 
+        ? completedJudgeCaseIds 
+        : pendingJudgeCaseIds;
       
-      if (newTestCaseIds.length > 0) {
-        setActiveTestCaseIds(newTestCaseIds);
+      if (newJudgeCaseIds.length > 0) {
+        setActiveJudgeCaseIds(newJudgeCaseIds);
       }
     }
-  }, [submitting, isPolling, result, completedTestCaseIds, pendingTestCaseIds]);
+  }, [submitting, isPolling, result, completedJudgeCaseIds, pendingJudgeCaseIds]);
 
   // テスト結果表示フラグ
-  const showTestCases = submitting || isPolling || result !== null;
+  const showJudgeCases = submitting || isPolling || result !== null;
   
   // トースト通知の処理 - 一度だけ表示
   useEffect(() => {
@@ -119,8 +119,8 @@ export default function ProblemPage() {
     }
     
     // 送信時にテストケースを取得（初回のみ）
-    if (availableTestCases.length === 0 && activeTestCaseIds.length === 0) {
-      await loadTestCases();
+    if (availableJudgeCases.length === 0 && activeJudgeCaseIds.length === 0) {
+      await loadJudgeCases();
     }
     
     toast.loading('ジャッジを開始します...', { id: 'judge-status' });
@@ -212,16 +212,16 @@ export default function ProblemPage() {
 
           {/* テストケース実行結果 - 統合されたUIコンポーネント */}
           <JudgeResultSection
-            isVisible={showTestCases}
-            testCaseList={activeTestCaseIds.length > 0 ? activeTestCaseIds : availableTestCases}
+            isVisible={showJudgeCases}
+            JudgeCaseList={activeJudgeCaseIds.length > 0 ? activeJudgeCaseIds : availableJudgeCases}
             judgeStatus={judgeStatus}
             submitting={submitting}
             isPolling={isPolling}
             testResults={testResults}
             result={result}
-            selectedTestCase={selectedTestCase}
-            handleTestCaseSelect={handleTestCaseSelect}
-            onLoadTestCases={loadTestCases}
+            selectedJudgeCase={selectedJudgeCase}
+            handleJudgeCaseSelect={handleJudgeCaseSelect}
+            onLoadJudgeCases={loadJudgeCases}
           />
         </div>
       </div>

@@ -64,7 +64,7 @@ export const TestResultDrawer = ({ isOpen, onClose, result }: TestResultDrawerPr
         {/* ヘッダー */}
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold">
-            テストケース{result?.test_case.id ? ` ${result.test_case.id}` : ''}の結果
+            テストケース{result?.judge_case.id ? ` ${result.judge_case.id}` : ''}の結果
           </h3>
           <button 
             onClick={onClose}
@@ -94,7 +94,7 @@ export const TestResultDrawer = ({ isOpen, onClose, result }: TestResultDrawerPr
             <div>
               <h4 className="font-semibold text-gray-700 mb-1">入力:</h4>
               <pre className="bg-gray-800 text-green-400 p-3 rounded overflow-x-auto">
-                {result.test_case.stdin.content}
+                {result.judge_case.stdin.content}
               </pre>
             </div>
             
@@ -102,7 +102,7 @@ export const TestResultDrawer = ({ isOpen, onClose, result }: TestResultDrawerPr
             <div>
               <h4 className="font-semibold text-gray-700 mb-1">期待される出力:</h4>
               <pre className="bg-gray-800 text-green-400 p-3 rounded overflow-x-auto">
-                {result.test_case.stdout.content}
+                {result.judge_case.stdout.content}
               </pre>
             </div>
             

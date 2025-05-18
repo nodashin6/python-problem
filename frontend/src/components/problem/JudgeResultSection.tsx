@@ -1,56 +1,70 @@
 import React, { useEffect } from 'react';
-import { TestCaseTable } from '@/components/problem/TestCaseTable';
+import { JudgeCaseTable } from '@/components/problem/JudgeCaseTable';
 import { TestResult } from '@/components/problem/TestResultCard';
 import { TestResults } from '@/components/problem/TestResults';
 import { JudgeStatus } from '@/lib/api';
-import type { JudgeResponse } from '@/types/judge';
-import TestCaseDetails from '@/components/problem/TestCaseDetails';
+import type { JudgeResponse, JudgeResult } from '@/types/judge';
+import JudgeCaseDetails from '@/components/problem/JudgeCaseDetails';
 
 interface JudgeResultSectionProps {
   isVisible: boolean;
-  testCaseList: string[];
+  JudgeCaseList: string[];
   judgeStatus: JudgeStatus | null;
   submitting: boolean;
   isPolling: boolean;
   testResults?: TestResult[];
   result: JudgeResponse | null;
-  selectedTestCase: TestResult | null;
-  handleTestCaseSelect: (testCase: TestResult) => void;
-  onLoadTestCases: () => void;
+  selectedJudgeCase: TestResult | null;
+  handleJudgeCaseSelect: (JudgeCase: TestResult) => void;
+  onLoadJudgeCases: () => void;
 }
 
 export const JudgeResultSection: React.FC<JudgeResultSectionProps> = ({
   isVisible,
-  testCaseList,
+  JudgeCaseList,
   judgeStatus,
   submitting,
   isPolling,
   testResults,
   result,
-  selectedTestCase,
-  handleTestCaseSelect,
-  onLoadTestCases
+  selectedJudgeCase,
+  handleJudgeCaseSelect,
+  onLoadJudgeCases
 }) => {
-  // デバッグ用ログ出力
+  // 修正: APIのデータ構造変化に対応するためのデバッグ用ロガー
   useEffect(() => {
-    console.log('📊 JudgeResultSection レンダリング:', {
-      isVisible,
-      testCaseListLength: testCaseList?.length,
-      hasTestResults: testResults?.length,
-      selectedTestCase: selectedTestCase?.id
-    });
-  }, [isVisible, testCaseList, testResults, selectedTestCase]);
-  
+    if (result) {
+      console.log('🌟 JudgeResultSection - result詳細:', {
+        hasError: !!result.error,
+        resultsType: typeof result.results,
+        resultsIsArray: Array.isArray(result.results),
+        resultsLength: Array.isArray(result.results) ? result.results.length : 'N/A'
+      });
+      
+      if (result.results && Array.isArray(result.results)) {
+        result.results.forEach((item, idx) => {
+          console.log(`🌟 結果項目 ${idx}:`, {
+            id: item.id,
+            hasJudgeCase: !!item.judge_case,
+            JudgeCaseId: item.judge_case?.id,
+            status: item.status
+          });
+        });
+      }
+    }
+  }, [result]);
+
+  // 修正: テスト結果を適切に処理
+  useEffect(() => {
+    if (testResults && testResults.length > 0) {
+      console.log('🌟 処理済みテスト結果:', testResults);
+    }
+  }, [testResults]);
+
   if (!isVisible) return null;
   
-  // テストケース行のクリックハンドラのデバッグラッパー
-  const handleTestCaseClick = (testCase: TestResult) => {
-    console.log('📊 テストケース選択:', testCase.id);
-    handleTestCaseSelect(testCase);
-  };
-
-  // 表示条件をシンプルに
-  const shouldShowTable = submitting || isPolling || testCaseList.length > 0;
+  // 本当にテスト結果があるか確認
+  const hasTestResults = testResults && testResults.length > 0;
   
   return (
     <div className="mt-6 card-modern">
@@ -88,14 +102,30 @@ export const JudgeResultSection: React.FC<JudgeResultSectionProps> = ({
           </div>
         )}
         
+        {/* テスト結果がない場合に原因を表示 */}
+        {judgeStatus?.status === 'completed' && (!testResults || testResults.length === 0) && !result?.error && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700">
+            <h3 className="font-semibold mb-1">注意</h3>
+            <p className="text-sm">
+              ジャッジは完了しましたが、テスト結果が取得できませんでした。APIの応答形式が想定と異なる可能性があります。
+            </p>
+            <div className="mt-2 text-xs bg-gray-50 p-2 rounded">
+              <p className="font-bold">応答情報:</p>
+              <p>JudgeStatus: {judgeStatus?.status}</p>
+              <p>結果型: {result ? typeof result.results : 'なし'}</p>
+              <p>エラー: {result?.error || 'なし'}</p>
+            </div>
+          </div>
+        )}
+        
         {/* テストケースがない場合のメッセージ */}
-        {testCaseList.length === 0 && !submitting && !isPolling && (
+        {JudgeCaseList.length === 0 && !submitting && !isPolling && (
           <div className="text-center p-4">
             <p className="text-gray-500 mb-3">テストケース情報がありません</p>
             <button 
               onClick={() => {
                 console.log('📊 テストケース取得ボタンクリック');
-                onLoadTestCases();
+                onLoadJudgeCases();
               }}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
@@ -104,33 +134,47 @@ export const JudgeResultSection: React.FC<JudgeResultSectionProps> = ({
           </div>
         )}
 
+        {/* テスト結果の状態をより詳細に表示 */}
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-lg text-blue-800">
+          <h3 className="font-semibold mb-1">デバッグ情報</h3>
+          <div className="text-xs">
+            <p>テストケース数: {JudgeCaseList.length}</p>
+            <p>提出中: {submitting ? 'はい' : 'いいえ'}</p>
+            <p>ポーリング中: {isPolling ? 'はい' : 'いいえ'}</p>
+            <p>テスト結果: {hasTestResults ? `${testResults?.length}件` : 'なし'}</p>
+            <p>ジャッジステータス: {judgeStatus?.status || '不明'}</p>
+          </div>
+        </div>
+
         {/* テーブル表示の条件をシンプルに */}
-        {shouldShowTable && (
+        {(submitting || isPolling || JudgeCaseList.length > 0) && (
           <>
             <p className="text-sm text-gray-500 mb-2">
-              {testCaseList.length > 0 
-                ? `${testCaseList.length}件のテストケース` 
+              {JudgeCaseList.length > 0 
+                ? `${JudgeCaseList.length}件のテストケース` 
                 : submitting || isPolling 
                   ? "判定実行中..." 
                   : "テストケースがありません"}
             </p>
             
-            <TestCaseTable 
-              testCaseList={testCaseList} 
+            {/* テストケース一覧テーブル - 重要な修正 */}
+            <JudgeCaseTable 
+              JudgeCaseList={JudgeCaseList} 
               judgeStatus={judgeStatus} 
-              submitting={submitting || isPolling}
-              allResults={testResults}
-              onTestCaseSelect={handleTestCaseClick}
-              selectedTestCaseId={selectedTestCase?.id}
+              submitting={submitting}  
+              isPolling={isPolling}
+              allResults={hasTestResults ? testResults : []}
+              onJudgeCaseSelect={handleJudgeCaseSelect}
+              selectedJudgeCaseId={selectedJudgeCase?.id}
             />
           </>
         )}
         
         {/* 選択されたテストケースの詳細表示 */}
-        {selectedTestCase && (
-          <TestCaseDetails
-            testCase={selectedTestCase}
-            onClose={() => handleTestCaseSelect(selectedTestCase)}
+        {selectedJudgeCase && (
+          <JudgeCaseDetails
+            JudgeCase={selectedJudgeCase}
+            onClose={() => handleJudgeCaseSelect(selectedJudgeCase)}
           />
         )}
         

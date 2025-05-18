@@ -1,16 +1,16 @@
 import React from 'react';
 import { TestResult } from './TestResultCard';
 
-interface TestCaseDetailsProps {
-  testCase: TestResult;
+interface JudgeCaseDetailsProps {
+  JudgeCase: TestResult;
   onClose: () => void;
 }
 
-const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({ testCase, onClose }) => {
+const JudgeCaseDetails: React.FC<JudgeCaseDetailsProps> = ({ JudgeCase, onClose }) => {
   return (
     <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg animate-fadeIn">
       <div className="flex justify-between items-center mb-3">
-        <h3 className="font-semibold text-lg">テストケース詳細: {testCase.test_case.name}</h3>
+        <h3 className="font-semibold text-lg">テストケース詳細: {JudgeCase.judge_case.name}</h3>
         <button 
           onClick={onClose}
           className="text-gray-500 hover:text-gray-700"
@@ -25,47 +25,47 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({ testCase, onClose }) 
         <div>
           <h4 className="font-medium text-gray-700 mb-1">入力</h4>
           <pre className="bg-gray-100 p-3 rounded text-sm overflow-auto max-h-40">
-            {testCase.test_case.stdin.content}
+            {JudgeCase.judge_case.stdin.content}
           </pre>
         </div>
         <div>
           <h4 className="font-medium text-gray-700 mb-1">期待される出力</h4>
           <pre className="bg-gray-100 p-3 rounded text-sm overflow-auto max-h-40">
-            {testCase.test_case.stdout.content}
+            {JudgeCase.judge_case.stdout.content}
           </pre>
         </div>
-        {testCase.metadata.output && (
+        {JudgeCase.metadata.output && (
           <div className="md:col-span-2">
             <h4 className="font-medium text-gray-700 mb-1">あなたの出力</h4>
             <pre className={`p-3 rounded text-sm overflow-auto max-h-40 ${
-              testCase.status === 'AC' 
+              JudgeCase.status === 'AC' 
                 ? 'bg-green-50 border border-green-100' 
                 : 'bg-red-50 border border-red-100'
             }`}>
-              {testCase.metadata.output}
+              {JudgeCase.metadata.output}
             </pre>
           </div>
         )}
-        {testCase.metadata.runtime_error && (
+        {JudgeCase.metadata.runtime_error && (
           <div className="md:col-span-2">
             <h4 className="font-medium text-red-700 mb-1">実行時エラー</h4>
             <pre className="bg-red-50 p-3 border border-red-100 rounded text-sm text-red-700 overflow-auto max-h-40">
-              {testCase.metadata.runtime_error}
+              {JudgeCase.metadata.runtime_error}
             </pre>
           </div>
         )}
-        {testCase.metadata.compile_error && (
+        {JudgeCase.metadata.compile_error && (
           <div className="md:col-span-2">
             <h4 className="font-medium text-red-700 mb-1">コンパイルエラー</h4>
             <pre className="bg-red-50 p-3 border border-red-100 rounded text-sm text-red-700 overflow-auto max-h-40">
-              {testCase.metadata.compile_error}
+              {JudgeCase.metadata.compile_error}
             </pre>
           </div>
         )}
-        {testCase.metadata.time_used && (
+        {JudgeCase.metadata.time_used && (
           <div className="md:col-span-2">
             <p className="text-sm text-gray-600">
-              実行時間: {testCase.metadata.time_used} ms
+              実行時間: {JudgeCase.metadata.time_used} ms
             </p>
           </div>
         )}
@@ -74,4 +74,4 @@ const TestCaseDetails: React.FC<TestCaseDetailsProps> = ({ testCase, onClose }) 
   );
 };
 
-export default TestCaseDetails;
+export default JudgeCaseDetails;

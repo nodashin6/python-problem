@@ -13,6 +13,18 @@ export const useJudgeResult = (judgeId: string | null, code: string, problemId: 
   const [isFetching, setIsFetching] = useState(false);
   const processedIdsRef = useRef<Set<string>>(new Set());
   
+  // APIからのレスポンス内容をデバッグする
+  const debugResponse = useCallback((resp: any) => {
+    console.log('🔍 API応答の詳細分析:', {
+      status: resp.status,
+      hasResults: resp.results !== undefined,
+      resultsType: resp.results ? typeof resp.results : 'undefined',
+      resultsIsArray: resp.results ? Array.isArray(resp.results) : false,
+      resultsDetail: resp.results,
+      error: resp.error
+    });
+  }, []);
+
   const fetchJudgeStatusEffect = useCallback(async () => {
     if (!judgeId || isFetching || processedIdsRef.current.has(judgeId)) {
       return;
@@ -21,17 +33,20 @@ export const useJudgeResult = (judgeId: string | null, code: string, problemId: 
     try {
       setIsFetching(true);
       const status = await fetchJudgeStatus(judgeId);
+      console.log('🔍 ジャッジステータス取得:', status);
+      debugResponse(status);
       setJudgeStatus(status);
     } catch (error) {
       console.error('ジャッジ状態の取得に失敗:', error);
     } finally {
       setIsFetching(false);
     }
-  }, [judgeId, isFetching]);
+  }, [judgeId, isFetching, debugResponse]);
 
   // ジャッジIDが変わったら状態をリセット
   useEffect(() => {
     if (judgeId && !processedIdsRef.current.has(judgeId)) {
+      console.log('🔎 新しいジャッジID検出:', judgeId);
       setResult(null);
       setJudgeStatus(null);
     }
@@ -54,16 +69,38 @@ export const useJudgeResult = (judgeId: string | null, code: string, problemId: 
     };
   }, [judgeId, result, fetchJudgeStatusEffect]);
   
-  // ステータス更新を検知して結果を生成
+  // 重要修正: ジャッジステータスからの結果取得部分を完全に書き直し
   useEffect(() => {
     if (!judgeId || !judgeStatus) return;
     
+    // 完了またはエラー状態のとき
     if (judgeStatus.status === 'completed' || judgeStatus.status === 'error') {
+      console.log('🔍 ジャッジが完了または失敗:', judgeStatus);
       processedIdsRef.current.add(judgeId);
       
+      // バックエンドからの応答形式を詳細に分析
       if (judgeStatus.results) {
-        setResult(judgeStatus.results);
+        console.log('🔍 results構造:', judgeStatus.results);
+        
+        // 結果がオブジェクトで、その中にresultsプロパティがある場合
+        if (typeof judgeStatus.results === 'object' && 'results' in judgeStatus.results) {
+          console.log('🔍 resultsはオブジェクトでresultsプロパティを持つ');
+          setResult(judgeStatus.results);
+        } 
+        // 結果が直接配列の場合 (またはresults自体が結果オブジェクトの場合)
+        else {
+          console.log('🔍 結果を標準形式に変換');
+          // 標準的な形式に変換して設定
+          setResult({
+            id: judgeId,
+            problem: { id: problemId },
+            code: code,
+            results: Array.isArray(judgeStatus.results) ? judgeStatus.results : [judgeStatus.results],
+            error: null
+          });
+        }
       } else if (judgeStatus.error) {
+        console.warn('🔍 ジャッジエラー:', judgeStatus.error);
         setResult({
           id: 'error',
           problem: { id: problemId },
@@ -71,10 +108,19 @@ export const useJudgeResult = (judgeId: string | null, code: string, problemId: 
           results: [],
           error: judgeStatus.error
         });
+      } else {
+        console.error('🔍 結果とエラーの両方がない完了状態:', judgeStatus);
+        // エラー状態として処理
+        setResult({
+          id: 'error',
+          problem: { id: problemId },
+          code: code,
+          results: [],
+          error: '結果の形式が不正です'
+        });
       }
       
       onComplete?.();
-      console.log('📌 ジャッジ完了:', judgeId);
     }
   }, [judgeId, judgeStatus, code, problemId, onComplete]);
 
@@ -82,7 +128,7 @@ export const useJudgeResult = (judgeId: string | null, code: string, problemId: 
   const resetJudgeResult = useCallback(() => {
     setResult(null);
     setJudgeStatus(null);
-    console.log('📌 ジャッジ結果をリセットしました');
+    console.log('🔎 ジャッジ結果をリセットしました');
   }, []);
 
   return { judgeStatus, result, isPolling, resetJudgeResult };

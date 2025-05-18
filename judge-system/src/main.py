@@ -28,5 +28,6 @@ def get_version():
 
 if __name__ == "__main__":
     import uvicorn
+
     print(f"Starting Judge System version {__version__}")
     uvicorn.run(app, host="0.0.0.0", port=8901)

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { fetchTestCases } from '@/lib/api';
+import { fetchJudgeCases } from '@/lib/api';
 import { TestResult } from '@/components/problem/TestResultCard';
 import type { JudgeResult } from '@/types/judge';
 
@@ -10,14 +10,14 @@ export const convertToTestResult = (judgeResult: JudgeResult): TestResult => {
   return {
     id: judgeResult.id,
     status: judgeResult.status,
-    test_case: {
-      id: judgeResult.test_case.id,
-      name: judgeResult.test_case.name,
+    judge_case: {
+      id: judgeResult.judge_case.id,
+      name: judgeResult.judge_case.name,
       stdin: {
-        content: judgeResult.test_case.stdin.content
+        content: judgeResult.judge_case.stdin.content
       },
       stdout: {
-        content: judgeResult.test_case.stdout.content 
+        content: judgeResult.judge_case.stdout.content 
       }
     },
     metadata: {
@@ -32,38 +32,38 @@ export const convertToTestResult = (judgeResult: JudgeResult): TestResult => {
 /**
  * テストケース管理用カスタムフック
  */
-export const useTestCases = (problemId: string) => {
-  const [availableTestCases, setAvailableTestCases] = useState<string[]>([]);
-  const [isLoadingTestCases, setIsLoadingTestCases] = useState(false);
-  const [selectedTestCase, setSelectedTestCase] = useState<TestResult | null>(null);
+export const useJudgeCases = (problemId: string) => {
+  const [availableJudgeCases, setAvailableJudgeCases] = useState<string[]>([]);
+  const [isLoadingJudgeCases, setIsLoadingJudgeCases] = useState(false);
+  const [selectedJudgeCase, setSelectedJudgeCase] = useState<TestResult | null>(null);
 
   // テストケース選択ハンドラー
-  const handleTestCaseSelect = useCallback((testCase: TestResult) => {
-    setSelectedTestCase(prev => prev?.id === testCase.id ? null : testCase);
+  const handleJudgeCaseSelect = useCallback((JudgeCase: TestResult) => {
+    setSelectedJudgeCase(prev => prev?.id === JudgeCase.id ? null : JudgeCase);
   }, []);
   
   // テストケースをロードする - 必要なときだけ呼び出す
-  const loadTestCases = useCallback(async () => {
-    if (!problemId || isLoadingTestCases) return;
+  const loadJudgeCases = useCallback(async () => {
+    if (!problemId || isLoadingJudgeCases) return;
     
-    setIsLoadingTestCases(true);
+    setIsLoadingJudgeCases(true);
     try {
-      const testCases = await fetchTestCases(problemId);
-      setAvailableTestCases(testCases);
-      console.log('📌 テストケース一覧を取得しました:', testCases);
+      const JudgeCases = await fetchJudgeCases(problemId);
+      setAvailableJudgeCases(JudgeCases);
+      console.log('📌 テストケース一覧を取得しました:', JudgeCases);
     } catch (error) {
       console.error('テストケース一覧の取得に失敗しました', error);
     } finally {
-      setIsLoadingTestCases(false);
+      setIsLoadingJudgeCases(false);
     }
-  }, [problemId, isLoadingTestCases]);
+  }, [problemId, isLoadingJudgeCases]);
 
   return {
-    availableTestCases,
-    isLoadingTestCases,
-    selectedTestCase,
-    setSelectedTestCase,
-    handleTestCaseSelect,
-    loadTestCases
+    availableJudgeCases,
+    isLoadingJudgeCases,
+    selectedJudgeCase,
+    setSelectedJudgeCase,
+    handleJudgeCaseSelect,
+    loadJudgeCases
   };
 };
