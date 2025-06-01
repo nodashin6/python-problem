@@ -16,11 +16,12 @@ from ....const import ContentType
 logger = get_logger(__name__)
 
 
-class ContentRepositoryImpl(BaseRepository, ContentRepository):
+class ContentRepositoryImpl(ContentRepository):
     """Content リポジトリの Supabase 実装"""
 
     def __init__(self, db_manager: DatabaseManager):
-        super().__init__(db_manager, "contents")
+        self.db_manager = db_manager
+        self.table_name = "contents"
 
     async def save(self, content: Content) -> bool:
         """コンテンツを保存"""

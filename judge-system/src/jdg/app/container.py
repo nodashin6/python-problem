@@ -10,9 +10,11 @@ import logging
 from dependency_injector import containers, providers
 from dependency_injector.wiring import Provide, inject
 
-from ...shared.database import SupabaseClient, get_supabase_client
+from supabase import create_client
+from ...shared.database import SupabaseClient  # get_supabase_client を削除
 from ...shared.events import EventBus, EventStore, event_bus, event_store
 from ...shared.logging import get_logger
+from ...env import settings  # shared.configから変更
 
 # Domain Interfaces
 from ..domain.repositories.submission_repository import SubmissionRepository
@@ -58,7 +60,11 @@ class JudgeContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
 
     # Database
-    supabase_client = providers.Singleton(get_supabase_client)
+    supabase_client = providers.Singleton(
+        create_client,
+        supabase_url=settings.supabase_url,  # SUPABASE_URLから変更
+        supabase_key=settings.supabase_anon_key,  # SUPABASE_ANON_KEYから変更
+    )
 
     # Event Infrastructure
     event_bus_instance = providers.Singleton(lambda: event_bus)

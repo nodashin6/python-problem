@@ -14,13 +14,19 @@ from ..infra.repositories.supabase_repositories import (
     SupabaseJudgeCaseRepository,
     SupabaseUserProblemStatusRepository,
 )
+from ..infra.repositories.user_repository_impl import UserRepositoryImpl
+from ..domain.services.user_service import UserDomainService
 from .services import (
     BookApplicationService,
     ProblemApplicationService,
     JudgeCaseApplicationService,
     UserProblemStatusApplicationService,
+    UserApplicationService,
 )
-from ...shared.config import settings
+from ...env import settings  # shared.configから変更
+from ...shared.auth import PasswordManager, TokenManager
+from ...shared.events import EventBus
+from ...shared.database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +40,15 @@ class CoreApplicationContainer(containers.DeclarativeContainer):
     # Supabase client
     supabase_client = Singleton(
         create_client,
-        supabase_url=settings.SUPABASE_URL,
-        supabase_key=settings.SUPABASE_ANON_KEY,
+        supabase_url=settings.supabase_url,  # SUPABASE_URLから変更
+        supabase_key=settings.supabase_anon_key,  # SUPABASE_ANON_KEYから変更
     )
+
+    # Database manager and auth components
+    database_manager = Singleton(DatabaseManager, supabase_client=supabase_client)
+    password_manager = Singleton(PasswordManager)
+    token_manager = Singleton(TokenManager)
+    event_bus = Singleton(EventBus)
 
     # Repository layer
     book_repository = Factory(SupabaseBookRepository, supabase_client=supabase_client)
@@ -51,6 +63,17 @@ class CoreApplicationContainer(containers.DeclarativeContainer):
 
     user_problem_status_repository = Factory(
         SupabaseUserProblemStatusRepository, supabase_client=supabase_client
+    )
+
+    user_repository = Factory(UserRepositoryImpl, db_manager=database_manager)
+
+    # Domain services
+    user_domain_service = Factory(
+        UserDomainService,
+        user_repo=user_repository,
+        password_manager=password_manager,
+        token_manager=token_manager,
+        event_bus=event_bus,
     )
 
     # Application services
@@ -70,6 +93,8 @@ class CoreApplicationContainer(containers.DeclarativeContainer):
         UserProblemStatusApplicationService,
         user_problem_status_repository=user_problem_status_repository,
     )
+
+    user_service = Factory(UserApplicationService, user_service=user_domain_service)
 
     async def init_resources(self) -> None:
         """リソースを初期化"""

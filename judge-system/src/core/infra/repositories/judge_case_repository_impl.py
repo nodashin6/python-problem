@@ -16,11 +16,12 @@ from ....const import JudgeCaseType
 logger = get_logger(__name__)
 
 
-class JudgeCaseRepositoryImpl(BaseRepository, JudgeCaseRepository):
+class JudgeCaseRepositoryImpl(JudgeCaseRepository):
     """JudgeCase リポジトリの Supabase 実装"""
 
     def __init__(self, db_manager: DatabaseManager):
-        super().__init__(db_manager, "judge_cases")
+        self.db_manager = db_manager
+        self.table_name = "judge_cases"
 
     async def save(self, judge_case: JudgeCase) -> bool:
         """ジャッジケースを保存"""

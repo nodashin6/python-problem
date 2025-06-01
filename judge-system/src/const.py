@@ -114,6 +114,17 @@ class Language(str, Enum):
     CHINESE_TRADITIONAL = "zh-tw"
 
 
+class ContentType(str, Enum):
+    """コンテンツタイプ"""
+
+    PROBLEM_STATEMENT = "problem_statement"
+    EDITORIAL = "editorial"
+    TUTORIAL = "tutorial"
+    HINT = "hint"
+    SAMPLE_CODE = "sample_code"
+    EXPLANATION = "explanation"
+
+
 class ProgrammingLanguage(str, Enum):
     """プログラミング言語"""
 

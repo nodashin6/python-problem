@@ -17,9 +17,9 @@ from .interfaces import (
     BookRepositoryInterface,
     ProblemRepositoryInterface,
     JudgeCaseRepositoryInterface,
-    UserProblemStatusRepositoryInterface,
+    # UserProblemStatusRepositoryInterface,  # TODO: 未実装のため一時コメントアウト
 )
-from ..domain.models import Book, Problem, JudgeCase, UserProblemStatus
+from ...domain.models import Book, Problem, JudgeCase
 
 logger = logging.getLogger(__name__)
 
@@ -355,121 +355,122 @@ class SupabaseJudgeCaseRepository(BaseSupabaseRepository, JudgeCaseRepositoryInt
             await self._handle_error(e, f"delete judge case {judge_case_id}")
 
 
-class SupabaseUserProblemStatusRepository(
-    BaseSupabaseRepository, UserProblemStatusRepositoryInterface
-):
-    """Supabase implementation of UserProblemStatus repository for Core domain"""
-
-    async def create(self, status: UserProblemStatus) -> UserProblemStatus:
-        """Create a new user problem status"""
-        try:
-            data = {
-                "user_id": status.user_id,
-                "problem_id": str(status.problem_id),
-                "is_solved": status.is_solved,
-                "score": status.score,
-                "attempt_count": status.attempt_count,
-                "solved_at": status.solved_at.isoformat() if status.solved_at else None,
-            }
-
-            # IDが設定されていない場合は生成
-            if status.id:
-                data["id"] = str(status.id)
-
-            result = (
-                await self.supabase.table("user_problem_status").insert(data).execute()
-            )
-
-            if result.data:
-                return UserProblemStatus(**result.data[0])
-            raise Exception("Failed to create user problem status")
-
-        except Exception as e:
-            await self._handle_error(e, "create user problem status")
-
-    async def find_by_user_and_problem(
-        self, user_id: str, problem_id: UUID
-    ) -> Optional[UserProblemStatus]:
-        """Find user problem status by user ID and problem ID"""
-        try:
-            result = await (
-                self.supabase.table("user_problem_status")
-                .select("*")
-                .eq("user_id", user_id)
-                .eq("problem_id", str(problem_id))
-                .execute()
-            )
-
-            if result.data:
-                return UserProblemStatus(**result.data[0])
-            return None
-
-        except Exception as e:
-            await self._handle_error(
-                e, f"find user problem status for user {user_id} problem {problem_id}"
-            )
-
-    async def find_by_user_id(self, user_id: str) -> List[UserProblemStatus]:
-        """Find all user problem statuses by user ID"""
-        try:
-            result = (
-                await self.supabase.table("user_problem_status")
-                .select("*")
-                .eq("user_id", user_id)
-                .execute()
-            )
-
-            return (
-                [UserProblemStatus(**status) for status in result.data]
-                if result.data
-                else []
-            )
-
-        except Exception as e:
-            await self._handle_error(e, f"find user problem statuses by user {user_id}")
-
-    async def update(self, status: UserProblemStatus) -> UserProblemStatus:
-        """Update user problem status"""
-        try:
-            result = (
-                await self.supabase.table("user_problem_status")
-                .update(
-                    {
-                        "is_solved": status.is_solved,
-                        "score": status.score,
-                        "attempt_count": status.attempt_count,
-                        "solved_at": (
-                            status.solved_at.isoformat() if status.solved_at else None
-                        ),
-                    }
-                )
-                .eq("user_id", status.user_id)
-                .eq("problem_id", str(status.problem_id))
-                .execute()
-            )
-
-            if result.data:
-                return UserProblemStatus(**result.data[0])
-            raise Exception("Failed to update user problem status")
-
-        except Exception as e:
-            await self._handle_error(
-                e, f"update user problem status {status.user_id}/{status.problem_id}"
-            )
-
-    async def delete(self, user_id: str, problem_id: UUID) -> bool:
-        """Delete user problem status"""
-        try:
-            result = await (
-                self.supabase.table("user_problem_status")
-                .delete()
-                .eq("user_id", user_id)
-                .eq("problem_id", str(problem_id))
-                .execute()
-            )
-            return len(result.data) > 0 if result.data else False
-
-        except Exception as e:
-            await self._handle_error(
-                e, f"delete user problem status {user_id}/{problem_id}"
-            )
+# TODO: UserProblemStatusモデルが未実装のため一時コメントアウト
+# class SupabaseUserProblemStatusRepository(
+#     BaseSupabaseRepository, UserProblemStatusRepositoryInterface
+# ):
+#     """Supabase implementation of UserProblemStatus repository for Core domain"""
+#
+#     async def create(self, status: UserProblemStatus) -> UserProblemStatus:
+#         """Create a new user problem status"""
+#         try:
+#             data = {
+#                 "user_id": status.user_id,
+#                 "problem_id": str(status.problem_id),
+#                 "is_solved": status.is_solved,
+#                 "score": status.score,
+#                 "attempt_count": status.attempt_count,
+#                 "solved_at": status.solved_at.isoformat() if status.solved_at else None,
+#             }
+#
+#             # IDが設定されていない場合は生成
+#             if status.id:
+#                 data["id"] = str(status.id)
+#
+#             result = (
+#                 await self.supabase.table("user_problem_status").insert(data).execute()
+#             )
+#
+#             if result.data:
+#                 return UserProblemStatus(**result.data[0])
+#             raise Exception("Failed to create user problem status")
+#
+#         except Exception as e:
+#             await self._handle_error(e, "create user problem status")
+#
+#     async def find_by_user_and_problem(
+#         self, user_id: str, problem_id: UUID
+#     ) -> Optional[UserProblemStatus]:
+#         """Find user problem status by user ID and problem ID"""
+#         try:
+#             result = await (
+#                 self.supabase.table("user_problem_status")
+#                 .select("*")
+#                 .eq("user_id", user_id)
+#                 .eq("problem_id", str(problem_id))
+#                 .execute()
+#             )
+#
+#             if result.data:
+#                 return UserProblemStatus(**result.data[0])
+#             return None
+#
+#         except Exception as e:
+#             await self._handle_error(
+#                 e, f"find user problem status for user {user_id} problem {problem_id}"
+#             )
+#
+#     async def find_by_user_id(self, user_id: str) -> List[UserProblemStatus]:
+#         """Find all user problem statuses by user ID"""
+#         try:
+#             result = (
+#                 await self.supabase.table("user_problem_status")
+#                 .select("*")
+#                 .eq("user_id", user_id)
+#                 .execute()
+#             )
+#
+#             return (
+#                 [UserProblemStatus(**status) for status in result.data]
+#                 if result.data
+#                 else []
+#             )
+#
+#         except Exception as e:
+#             await self._handle_error(e, f"find user problem statuses by user {user_id}")
+#
+#     async def update(self, status: UserProblemStatus) -> UserProblemStatus:
+#         """Update user problem status"""
+#         try:
+#             result = (
+#                 await self.supabase.table("user_problem_status")
+#                 .update(
+#                     {
+#                         "is_solved": status.is_solved,
+#                         "score": status.score,
+#                         "attempt_count": status.attempt_count,
+#                         "solved_at": (
+#                             status.solved_at.isoformat() if status.solved_at else None
+#                         ),
+#                     }
+#                 )
+#                 .eq("user_id", status.user_id)
+#                 .eq("problem_id", str(status.problem_id))
+#                 .execute()
+#             )
+#
+#             if result.data:
+#                 return UserProblemStatus(**result.data[0])
+#             raise Exception("Failed to update user problem status")
+#
+#         except Exception as e:
+#             await self._handle_error(
+#                 e, f"update user problem status {status.user_id}/{status.problem_id}"
+#             )
+#
+#     async def delete(self, user_id: str, problem_id: UUID) -> bool:
+#         """Delete user problem status"""
+#         try:
+#             result = await (
+#                 self.supabase.table("user_problem_status")
+#                 .delete()
+#                 .eq("user_id", user_id)
+#                 .eq("problem_id", str(problem_id))
+#                 .execute()
+#             )
+#             return len(result.data) > 0 if result.data else False
+#
+#         except Exception as e:
+#             await self._handle_error(
+#                 e, f"delete user problem status {user_id}/{problem_id}"
+#             )

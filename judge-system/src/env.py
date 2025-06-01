@@ -89,10 +89,25 @@ class EnvSettings(BaseSettings):
 
     # セキュリティ設定
     secret_key: str = Field(default="your-secret-key-here", alias="SECRET_KEY")
+    jwt_algorithm: str = Field(default="HS256", alias="JWT_ALGORITHM")
+    jwt_expire_minutes: int = Field(default=30, alias="JWT_EXPIRE_MINUTES")
 
     # API設定
     host: str = Field(default="localhost", alias="HOST")
     port: int = Field(default=8000, alias="PORT")
+
+    # ジャッジ実行制限設定
+    default_time_limit_ms: int = Field(default=5000, alias="DEFAULT_TIME_LIMIT_MS")
+    default_memory_limit_mb: int = Field(default=256, alias="DEFAULT_MEMORY_LIMIT_MB")
+    default_output_limit_kb: int = Field(default=64, alias="DEFAULT_OUTPUT_LIMIT_KB")
+
+    # ジャッジワーカー設定
+    max_concurrent_judges: int = Field(default=3, alias="MAX_CONCURRENT_JUDGES")
+    judge_timeout_seconds: int = Field(default=30, alias="JUDGE_TIMEOUT_SECONDS")
+
+    # キャッシュ設定
+    cache_ttl_seconds: int = Field(default=300, alias="CACHE_TTL_SECONDS")
+    cache_max_size: int = Field(default=1000, alias="CACHE_MAX_SIZE")
 
     # 外部サービス設定
     smtp_host: Optional[str] = Field(default=None, alias="SMTP_HOST")
@@ -153,3 +168,6 @@ class EnvSettings(BaseSettings):
 
 # グローバル設定インスタンス
 settings = EnvSettings()
+SUPABASE_URL = settings.supabase_url
+SUPABASE_ANON_KEY = settings.supabase_anon_key
+SUPABASE_SERVICE_KEY = settings.supabase_service_key

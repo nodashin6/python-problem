@@ -9,25 +9,26 @@ from .domain.models import (
     Problem,
     JudgeCase,
     Book,
-    Content,
+    ProblemContent,
+    EditorialContent,
     Tag,
     ProblemMetadata,
     UserProfile,
 )
 
-# Domain Events
-from .domain.events import (
-    UserRegisteredEvent,
-    UserProfileUpdatedEvent,
-    ProblemCreatedEvent,
-    ProblemUpdatedEvent,
-    ProblemPublishedEvent,
-    JudgeCaseAddedEvent,
-    JudgeCaseUpdatedEvent,
-    BookCreatedEvent,
-    BookUpdatedEvent,
-    BookPublishedEvent,
-)
+# Domain Events - temporarily disabled until events.py is created
+# from .domain.events import (
+#     UserRegisteredEvent,
+#     UserProfileUpdatedEvent,
+#     ProblemCreatedEvent,
+#     ProblemUpdatedEvent,
+#     ProblemPublishedEvent,
+#     JudgeCaseAddedEvent,
+#     JudgeCaseUpdatedEvent,
+#     BookCreatedEvent,
+#     BookUpdatedEvent,
+#     BookPublishedEvent,
+# )
 
 # Domain Services
 from .domain.services import UserDomainService, ProblemDomainService, BookDomainService
@@ -38,7 +39,8 @@ from .domain.repositories import (
     ProblemRepository,
     JudgeCaseRepository,
     BookRepository,
-    ContentRepository,
+    ProblemContentRepository,
+    EditorialRepository,
 )
 
 # Infrastructure Implementations
@@ -47,7 +49,7 @@ from .infra import (
     ProblemRepositoryImpl,
     JudgeCaseRepositoryImpl,
     BookRepositoryImpl,
-    ContentRepositoryImpl,
+    # ContentRepositoryImpl,  # temporarily disabled
 )
 
 __all__ = [
@@ -56,21 +58,22 @@ __all__ = [
     "Problem",
     "JudgeCase",
     "Book",
-    "Content",
+    "ProblemContent",
+    "EditorialContent",
     "Tag",
     "ProblemMetadata",
     "UserProfile",
-    # Events
-    "UserRegisteredEvent",
-    "UserProfileUpdatedEvent",
-    "ProblemCreatedEvent",
-    "ProblemUpdatedEvent",
-    "ProblemPublishedEvent",
-    "JudgeCaseAddedEvent",
-    "JudgeCaseUpdatedEvent",
-    "BookCreatedEvent",
-    "BookUpdatedEvent",
-    "BookPublishedEvent",
+    # Events - temporarily disabled
+    # "UserRegisteredEvent",
+    # "UserProfileUpdatedEvent",
+    # "ProblemCreatedEvent",
+    # "ProblemUpdatedEvent",
+    # "ProblemPublishedEvent",
+    # "JudgeCaseAddedEvent",
+    # "JudgeCaseUpdatedEvent",
+    # "BookCreatedEvent",
+    # "BookUpdatedEvent",
+    # "BookPublishedEvent",
     # Services
     "UserDomainService",
     "ProblemDomainService",
@@ -80,11 +83,12 @@ __all__ = [
     "ProblemRepository",
     "JudgeCaseRepository",
     "BookRepository",
-    "ContentRepository",
+    "ProblemContentRepository",
+    "EditorialRepository",
     # Repository Implementations
     "UserRepositoryImpl",
     "ProblemRepositoryImpl",
     "JudgeCaseRepositoryImpl",
     "BookRepositoryImpl",
-    "ContentRepositoryImpl",
+    # "ContentRepositoryImpl",  # temporarily disabled
 ]

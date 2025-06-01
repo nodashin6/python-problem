@@ -17,11 +17,12 @@ from ....const import DifficultyLevel, ProblemStatus
 logger = get_logger(__name__)
 
 
-class ProblemRepositoryImpl(BaseRepository, ProblemRepository):
+class ProblemRepositoryImpl(ProblemRepository):
     """Problem リポジトリの Supabase 実装"""
 
     def __init__(self, db_manager: DatabaseManager):
-        super().__init__(db_manager, "problems")
+        self.db_manager = db_manager
+        self.table_name = "problems"
 
     async def save(self, problem: Problem) -> bool:
         """問題を保存"""

@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from ..models import User, UserProfile
 from ..repositories import UserRepository
 from ....const import UserRole
-from ....shared.auth import PasswordManager, TokenManager
+from ....shared.auth import PasswordManager, JWTManager
 from ....shared.events import EventBus
 
 
@@ -22,7 +22,7 @@ class UserDomainService:
         self,
         user_repo: UserRepository,
         password_manager: PasswordManager,
-        token_manager: TokenManager,
+        token_manager: JWTManager,
         event_bus: EventBus,
     ):
         self.user_repo = user_repo

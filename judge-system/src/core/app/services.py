@@ -11,13 +11,22 @@ from uuid import UUID
 import logging
 from datetime import datetime
 
-from ..domain.models import Book, Problem, JudgeCase, UserProblemStatus
+from ..domain.models import (
+    Book,
+    Problem,
+    JudgeCase,
+    UserProblemStatus,
+    User,
+    UserProfile,
+)
+from ..domain.services.user_service import UserDomainService
 from ..infra.repositories.interfaces import (
     BookRepositoryInterface,
     ProblemRepositoryInterface,
     JudgeCaseRepositoryInterface,
     UserProblemStatusRepositoryInterface,
 )
+from ...const import UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -322,4 +331,141 @@ class UserProblemStatusApplicationService:
             logger.error(
                 f"Error updating user status for {user_id}, problem {problem_id}: {e}"
             )
+            raise
+
+
+class UserApplicationService:
+    """ユーザー管理アプリケーションサービス"""
+
+    def __init__(self, user_service: UserDomainService):
+        self.user_service = user_service
+
+    async def register_user(
+        self,
+        email: str,
+        username: str,
+        password: str,
+        display_name: str,
+        bio: Optional[str] = None,
+        avatar_url: Optional[str] = None,
+        github_username: Optional[str] = None,
+        preferred_language: str = "python",
+    ) -> Dict[str, Any]:
+        """新規ユーザー登録"""
+        try:
+            # プロフィール作成
+            profile = UserProfile(
+                display_name=display_name,
+                bio=bio,
+                avatar_url=avatar_url,
+                github_username=github_username,
+                preferred_language=preferred_language,
+            )
+
+            # ユーザー登録
+            user = await self.user_service.register_user(
+                email=email,
+                username=username,
+                password=password,
+                profile=profile,
+                role=UserRole.USER,
+            )
+
+            # JWTトークン生成
+            access_token = await self.user_service.create_access_token(user)
+            refresh_token = await self.user_service.create_refresh_token(user)
+
+            logger.info(f"User registered successfully: {username}")
+            return {
+                "user": {
+                    "id": str(user.id),
+                    "email": user.email,
+                    "username": user.username,
+                    "display_name": user.profile.display_name,
+                    "role": user.role.value,
+                },
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "token_type": "bearer",
+            }
+
+        except Exception as e:
+            logger.error(f"Error registering user {username}: {e}")
+            raise
+
+    async def login_user(self, email: str, password: str) -> Dict[str, Any]:
+        """ユーザーログイン"""
+        try:
+            # 認証
+            user = await self.user_service.authenticate_user(email, password)
+            if not user:
+                raise ValueError("Invalid email or password")
+
+            # JWTトークン生成
+            access_token = await self.user_service.create_access_token(user)
+            refresh_token = await self.user_service.create_refresh_token(user)
+
+            logger.info(f"User logged in successfully: {user.username}")
+            return {
+                "user": {
+                    "id": str(user.id),
+                    "email": user.email,
+                    "username": user.username,
+                    "display_name": user.profile.display_name,
+                    "role": user.role.value,
+                },
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "token_type": "bearer",
+            }
+
+        except Exception as e:
+            logger.error(f"Error logging in user with email {email}: {e}")
+            raise
+
+    async def get_user_profile(self, user_id: UUID) -> Optional[Dict[str, Any]]:
+        """ユーザープロフィール取得"""
+        try:
+            user = await self.user_service.get_user_by_id(user_id)
+            if not user:
+                return None
+
+            return {
+                "id": str(user.id),
+                "email": user.email,
+                "username": user.username,
+                "display_name": user.profile.display_name,
+                "bio": user.profile.bio,
+                "avatar_url": user.profile.avatar_url,
+                "github_username": user.profile.github_username,
+                "preferred_language": user.profile.preferred_language,
+                "role": user.role.value,
+                "is_active": user.is_active,
+                "is_verified": user.is_verified,
+                "created_at": user.created_at.isoformat(),
+                "last_login_at": (
+                    user.last_login_at.isoformat() if user.last_login_at else None
+                ),
+            }
+
+        except Exception as e:
+            logger.error(f"Error getting user profile for {user_id}: {e}")
+            raise
+
+    async def refresh_access_token(self, refresh_token: str) -> Dict[str, Any]:
+        """アクセストークンリフレッシュ"""
+        try:
+            # リフレッシュトークンから新しいアクセストークンを生成
+            new_access_token = await self.user_service.refresh_access_token(
+                refresh_token
+            )
+
+            logger.info("Access token refreshed successfully")
+            return {
+                "access_token": new_access_token,
+                "token_type": "bearer",
+            }
+
+        except Exception as e:
+            logger.error(f"Error refreshing access token: {e}")
             raise

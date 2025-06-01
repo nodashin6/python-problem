@@ -21,11 +21,16 @@ class Entity(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    _events: List[DomainEvent] = Field(default_factory=list, exclude=True)
-
     model_config = ConfigDict(
         arbitrary_types_allowed=True, validate_assignment=True, use_enum_values=True
     )
+
+    # Private attributes for domain events
+    _events: List[DomainEvent]
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self._events = []
 
     def add_event(self, event: DomainEvent) -> None:
         """Add domain event"""
@@ -49,7 +54,7 @@ class Tag(ValueObject):
     """Problem tag value object - aligned with actual DB schema"""
 
     name: str = Field(..., min_length=1, max_length=50)
-    color: Optional[str] = Field(None, regex=r"^#[0-9A-Fa-f]{6}$")
+    color: Optional[str] = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
 
     @validator("name")
     def validate_name(cls, v):
@@ -103,7 +108,7 @@ class UserRegistered(DomainEvent):
 class User(Entity):
     """User entity"""
 
-    email: str = Field(..., regex=r"^[^@]+@[^@]+\.[^@]+$")
+    email: str = Field(..., pattern=r"^[^@]+@[^@]+\.[^@]+$")
     username: str = Field(..., min_length=3, max_length=50)
     password_hash: str
     role: UserRole = Field(default=UserRole.USER)
@@ -287,6 +292,29 @@ class EditorialContent(Entity):
 
 
 # Legacy compatibility (keeping the old models for migration)
+class Content(Entity):
+    """Content entity for various content types"""
+
+    title: str = Field(..., min_length=1, max_length=200)
+    content: str = Field(..., min_length=1)
+    content_type: str = Field(..., min_length=1)  # Using string instead of ContentType enum for now
+    author_id: UUID4
+    is_published: bool = Field(default=False)
+    language: str = Field(default="en", min_length=2, max_length=5)
+    tags: List[str] = Field(default_factory=list)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+    def publish(self) -> None:
+        """Publish content"""
+        self.is_published = True
+        self.updated_at = datetime.utcnow()
+
+    def unpublish(self) -> None:
+        """Unpublish content"""
+        self.is_published = False
+        self.updated_at = datetime.utcnow()
+
+
 class CaseFile(BaseModel):
     """テストケースの入力・出力ファイル (Legacy)"""
 

@@ -109,14 +109,16 @@ CHECK (judge_case_type IN ('sample', 'normal', 'edge', 'stress'));
 -- User Management Tables (Core Domain)
 -- =====================================================
 
--- Users (ユーザープロファイル) - Supabase auth.users を拡張
+-- Users (ユーザープロファイル) - 独立したユーザー管理
 CREATE TABLE IF NOT EXISTS public.users (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    username VARCHAR(50) UNIQUE,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username VARCHAR(50) UNIQUE NOT NULL,
     display_name VARCHAR(100),
     email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255),  -- ローカル認証用
     avatar_url TEXT,
     bio TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -279,9 +281,9 @@ FOR SELECT USING (
     )
 );
 
--- Judge cases readable by authenticated users
-CREATE POLICY "judge_cases_readable_by_authenticated" ON public.judge_cases 
-FOR SELECT TO authenticated USING (
+-- Judge cases readable by all (no auth restriction for local testing)
+CREATE POLICY "judge_cases_readable_by_all" ON public.judge_cases 
+FOR SELECT USING (
     EXISTS (
         SELECT 1 FROM public.problems 
         WHERE problems.id = judge_cases.problem_id 
@@ -289,38 +291,13 @@ FOR SELECT TO authenticated USING (
     )
 );
 
--- Users can manage their own profile
-CREATE POLICY "users_can_view_own_profile" ON public.users 
-FOR SELECT USING (auth.uid() = id);
-
-CREATE POLICY "users_can_update_own_profile" ON public.users 
-FOR UPDATE USING (auth.uid() = id);
-
--- User stats and problem status (own data only)
-CREATE POLICY "users_can_view_own_stats" ON public.user_stats 
-FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "users_can_view_own_problem_status" ON public.user_problem_status 
-FOR SELECT USING (auth.uid() = user_id);
-
--- Admin/Moderator policies for content management
-CREATE POLICY "admins_can_manage_books" ON public.books 
-FOR ALL USING (
-    EXISTS (
-        SELECT 1 FROM public.user_roles 
-        WHERE user_roles.user_id = auth.uid() 
-        AND user_roles.role IN ('admin', 'moderator')
-    )
-);
-
-CREATE POLICY "admins_can_manage_problems" ON public.problems 
-FOR ALL USING (
-    EXISTS (
-        SELECT 1 FROM public.user_roles 
-        WHERE user_roles.user_id = auth.uid() 
-        AND user_roles.role IN ('admin', 'moderator')
-    )
-);
+-- Allow all access for local testing (RLS disabled for local development)
+-- Note: In production, these should be replaced with proper auth checks
+CREATE POLICY "users_all_access" ON public.users FOR ALL USING (true);
+CREATE POLICY "user_stats_all_access" ON public.user_stats FOR ALL USING (true);
+CREATE POLICY "user_problem_status_all_access" ON public.user_problem_status FOR ALL USING (true);
+CREATE POLICY "books_all_access" ON public.books FOR ALL USING (true);
+CREATE POLICY "problems_all_access" ON public.problems FOR ALL USING (true);
 
 -- =====================================================
 -- Core Domain Triggers for updated_at timestamps

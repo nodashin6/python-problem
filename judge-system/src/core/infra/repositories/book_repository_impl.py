@@ -11,16 +11,17 @@ from ...domain.models import Book, Tag
 from ...domain.repositories.book_repository import BookRepository
 from ....shared.database import DatabaseManager, BaseRepository
 from ....shared.logging import get_logger
-from ....const import BookStatus
+# from ....const import BookStatus  # TODO: BookStatus未定義のため一時コメントアウト
 
 logger = get_logger(__name__)
 
 
-class BookRepositoryImpl(BaseRepository, BookRepository):
+class BookRepositoryImpl(BookRepository):
     """Book リポジトリの Supabase 実装"""
 
     def __init__(self, db_manager: DatabaseManager):
-        super().__init__(db_manager, "books")
+        self.db_manager = db_manager
+        self.table_name = "books"
 
     async def save(self, book: Book) -> bool:
         """ブックを保存"""
@@ -125,7 +126,7 @@ class BookRepositoryImpl(BaseRepository, BookRepository):
             logger.error(f"Failed to find public books: {e}")
             return []
 
-    async def find_by_status(self, status: BookStatus) -> List[Book]:
+    async def find_by_status(self, status: str) -> List[Book]:  # TODO: BookStatus -> str に一時変更
         """ステータスでブックを検索"""
         try:
             conditions = {"status": status.value}
@@ -173,7 +174,7 @@ class BookRepositoryImpl(BaseRepository, BookRepository):
         title: Optional[str] = None,
         tags: Optional[List[str]] = None,
         author_id: Optional[uuid.UUID] = None,
-        status: Optional[BookStatus] = None,
+        status: Optional[str] = None,  # TODO: BookStatus -> str に一時変更
         is_public: Optional[bool] = None,
         limit: int = 50,
         offset: int = 0,
@@ -336,7 +337,7 @@ class BookRepositoryImpl(BaseRepository, BookRepository):
                 id=uuid.UUID(data["id"]),
                 title=data["title"],
                 description=data.get("description", ""),
-                status=BookStatus(data["status"]),
+                status=data["status"],  # TODO: BookStatus(data["status"]) -> data["status"] に一時変更
                 author_id=uuid.UUID(data["author_id"]),
                 is_public=data["is_public"],
                 tags=tags,

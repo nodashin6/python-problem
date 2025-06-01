@@ -12,6 +12,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, status
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, EmailStr
 
 from ..app.container import container
 from ..app.controllers import (
@@ -29,7 +30,15 @@ from ..app.controllers import (
     CreateJudgeCaseRequest,
     UpdateUserStatusRequest,
 )
-from ...shared.auth import get_current_user, require_admin, User
+from ...shared.auth import (
+    get_current_user,
+    require_admin,
+    User,
+    get_optional_user,
+    create_access_token,
+    Role,
+)
+from ...const import UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -316,6 +325,183 @@ async def update_user_status(
         )
 
     return await controller.update_user_status(user_id, problem_id, request)
+
+
+# =============================================================================
+# Authentication & User Management エンドポイント
+# =============================================================================
+
+
+class RegisterUserRequest(BaseModel):
+    """ユーザー登録リクエスト"""
+
+    email: EmailStr
+    username: str
+    password: str
+    display_name: str = ""
+    bio: str = ""
+    avatar_url: str = ""
+
+
+class LoginRequest(BaseModel):
+    """ログインリクエスト"""
+
+    email: EmailStr
+    password: str
+
+
+class UserResponse(BaseModel):
+    """ユーザー情報レスポンス"""
+
+    id: str
+    email: str
+    username: str
+    display_name: str
+    bio: str
+    avatar_url: str
+    is_active: bool
+    is_verified: bool
+    role: str
+
+
+class AuthResponse(BaseModel):
+    """認証レスポンス"""
+
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+
+@core_router.post(
+    "/auth/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED
+)
+async def register_user(request: RegisterUserRequest):
+    """
+    新しいユーザーを登録
+
+    Args:
+        request: ユーザー登録リクエスト
+
+    Returns:
+        認証トークンとユーザー情報
+    """
+    try:
+        user_service = container.user_service()
+
+        # Register user using application service
+        result = await user_service.register_user(
+            email=request.email,
+            username=request.username,
+            password=request.password,
+            display_name=request.display_name or request.username,
+            bio=request.bio,
+            avatar_url=request.avatar_url,
+        )
+
+        user_response = UserResponse(
+            id=result["user"]["id"],
+            email=result["user"]["email"],
+            username=result["user"]["username"],
+            display_name=result["user"]["display_name"],
+            bio=request.bio,
+            avatar_url=request.avatar_url,
+            is_active=True,
+            is_verified=False,
+            role=result["user"]["role"],
+        )
+
+        return AuthResponse(access_token=result["access_token"], user=user_response)
+
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error(f"Failed to register user: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
+
+
+@core_router.post("/auth/login", response_model=AuthResponse)
+async def login_user(request: LoginRequest):
+    """
+    ユーザーログイン
+
+    Args:
+        request: ログインリクエスト
+
+    Returns:
+        認証トークンとユーザー情報
+    """
+    try:
+        user_service = container.user_service()
+
+        # Login user using application service
+        result = await user_service.login_user(request.email, request.password)
+
+        user_response = UserResponse(
+            id=result["user"]["id"],
+            email=result["user"]["email"],
+            username=result["user"]["username"],
+            display_name=result["user"]["display_name"],
+            bio=None,  # Will be fetched from profile if needed
+            avatar_url=None,  # Will be fetched from profile if needed
+            is_active=True,
+            is_verified=False,
+            role=result["user"]["role"],
+        )
+
+        return AuthResponse(access_token=result["access_token"], user=user_response)
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password"
+        )
+    except Exception as e:
+        logger.error(f"Failed to login user: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
+
+
+@core_router.get("/auth/me", response_model=UserResponse)
+async def get_current_user_profile(current_user: User = Depends(get_current_user)):
+    """
+    現在のユーザー情報を取得
+
+    Returns:
+        ユーザー情報
+    """
+    try:
+        user_service = container.user_service()
+        profile_data = await user_service.get_user_profile(UUID(current_user.user_id))
+
+        if not profile_data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
+
+        return UserResponse(
+            id=profile_data["id"],
+            email=profile_data["email"],
+            username=profile_data["username"],
+            display_name=profile_data["display_name"],
+            bio=profile_data["bio"],
+            avatar_url=profile_data["avatar_url"],
+            is_active=profile_data["is_active"],
+            is_verified=profile_data["is_verified"],
+            role=profile_data["role"],
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get user profile: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
 
 
 # =============================================================================

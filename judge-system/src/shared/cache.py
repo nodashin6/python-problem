@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import asyncio
 import hashlib
 
-import redis.asyncio as redis
+# import redis.asyncio as redis  # 一時的に無効化 - 後でSupabaseベースの実装に置き換え
 from ..env import settings
 from ..const import CACHE_TTL_SECONDS, CACHE_MAX_SIZE
 
@@ -109,103 +109,12 @@ class MemoryCache(CacheBackend):
             return True
 
 
+"""
+# RedisCache class temporarily disabled - will be replaced with Supabase-based implementation
 class RedisCache(CacheBackend):
-    """Redis キャッシュ実装"""
-
-    def __init__(self, redis_url: Optional[str] = None):
-        self.redis_url = redis_url or settings.redis_url or "redis://localhost:6379/0"
-        self.client: Optional[redis.Redis] = None
-
-    async def initialize(self):
-        """Redis接続を初期化"""
-        try:
-            self.client = redis.from_url(self.redis_url, decode_responses=True)
-            await self.client.ping()
-            logger.info("Redis cache initialized successfully")
-        except Exception as e:
-            logger.warning(
-                f"Failed to initialize Redis cache: {e}. Falling back to memory cache."
-            )
-            raise
-
-    async def close(self):
-        """Redis接続を閉じる"""
-        if self.client:
-            await self.client.close()
-
-    def _serialize(self, value: Any) -> str:
-        """値をシリアライズ"""
-        if isinstance(value, (str, int, float)):
-            return json.dumps({"type": "simple", "value": value})
-        else:
-            return json.dumps({"type": "complex", "value": pickle.dumps(value).hex()})
-
-    def _deserialize(self, data: str) -> Any:
-        """値をデシリアライズ"""
-        try:
-            obj = json.loads(data)
-            if obj["type"] == "simple":
-                return obj["value"]
-            else:
-                return pickle.loads(bytes.fromhex(obj["value"]))
-        except Exception:
-            return data
-
-    async def get(self, key: str) -> Optional[Any]:
-        if not self.client:
-            return None
-
-        try:
-            data = await self.client.get(key)
-            return self._deserialize(data) if data else None
-        except Exception as e:
-            logger.error(f"Redis get error for key {key}: {e}")
-            return None
-
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
-        if not self.client:
-            return False
-
-        try:
-            serialized = self._serialize(value)
-            ttl = ttl or CACHE_TTL_SECONDS
-            await self.client.setex(key, ttl, serialized)
-            return True
-        except Exception as e:
-            logger.error(f"Redis set error for key {key}: {e}")
-            return False
-
-    async def delete(self, key: str) -> bool:
-        if not self.client:
-            return False
-
-        try:
-            result = await self.client.delete(key)
-            return result > 0
-        except Exception as e:
-            logger.error(f"Redis delete error for key {key}: {e}")
-            return False
-
-    async def exists(self, key: str) -> bool:
-        if not self.client:
-            return False
-
-        try:
-            return await self.client.exists(key) > 0
-        except Exception as e:
-            logger.error(f"Redis exists error for key {key}: {e}")
-            return False
-
-    async def clear(self) -> bool:
-        if not self.client:
-            return False
-
-        try:
-            await self.client.flushdb()
-            return True
-        except Exception as e:
-            logger.error(f"Redis clear error: {e}")
-            return False
+    # Redis キャッシュ実装 - 一時的に無効化
+    pass
+"""
 
 
 class CacheManager:
@@ -215,25 +124,16 @@ class CacheManager:
         self.backend: Optional[CacheBackend] = None
         self._fallback_backend: MemoryCache = MemoryCache()
 
-    async def initialize(self, use_redis: bool = True):
+    async def initialize(self, use_redis: bool = False):  # 一時的にRedisを無効化
         """キャッシュバックエンドを初期化"""
-        if use_redis and settings.redis_url:
-            try:
-                redis_cache = RedisCache()
-                await redis_cache.initialize()
-                self.backend = redis_cache
-                logger.info("Using Redis cache backend")
-            except Exception:
-                logger.warning("Failed to initialize Redis, using memory cache")
-                self.backend = self._fallback_backend
-        else:
-            self.backend = self._fallback_backend
-            logger.info("Using memory cache backend")
+        # Redis機能を一時的に無効化 - 将来的にSupabaseベースの実装に置き換え
+        self.backend = self._fallback_backend
+        logger.info("Using memory cache backend (Redis temporarily disabled)")
 
     async def close(self):
         """キャッシュバックエンドを閉じる"""
-        if isinstance(self.backend, RedisCache):
-            await self.backend.close()
+        # Redis関連の処理を一時的に無効化
+        pass
 
     def _generate_key(self, namespace: str, key: str, **kwargs) -> str:
         """キャッシュキーを生成"""

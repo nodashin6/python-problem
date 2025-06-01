@@ -159,51 +159,173 @@ class JudgeQueue:
 # Domain Events
 
 
-@dataclass
 class SubmissionCreatedEvent(DomainEvent):
     """提出作成イベント"""
 
-    submission_id: uuid.UUID
-    problem_id: uuid.UUID
-    user_id: uuid.UUID
-    language: str
+    def __init__(
+        self,
+        submission_id: uuid.UUID,
+        problem_id: uuid.UUID,
+        user_id: uuid.UUID,
+        language: str,
+        **kwargs
+    ):
+        data = {
+            "submission_id": str(submission_id),
+            "problem_id": str(problem_id),
+            "user_id": str(user_id),
+            "language": language,
+        }
+        super().__init__(
+            event_id=kwargs.get("event_id", str(uuid.uuid4())),
+            event_type="submission_created",
+            source_domain="judge",
+            target_domain=kwargs.get("target_domain"),
+            occurred_at=kwargs.get("occurred_at", datetime.utcnow()),
+            data=data,
+            **{
+                k: v
+                for k, v in kwargs.items()
+                if k not in ["event_id", "target_domain", "occurred_at"]
+            }
+        )
+        self.submission_id = submission_id
+        self.problem_id = problem_id
+        self.user_id = user_id
+        self.language = language
 
 
-@dataclass
 class SubmissionJudgedEvent(DomainEvent):
     """提出ジャッジ完了イベント"""
 
-    submission_id: uuid.UUID
-    problem_id: uuid.UUID
-    user_id: uuid.UUID
-    result: str
-    total_points: int
-    max_points: int
-    execution_time: float
+    def __init__(
+        self,
+        submission_id: uuid.UUID,
+        problem_id: uuid.UUID,
+        user_id: uuid.UUID,
+        result: str,
+        total_points: int,
+        max_points: int,
+        **kwargs
+    ):
+        data = {
+            "submission_id": str(submission_id),
+            "problem_id": str(problem_id),
+            "user_id": str(user_id),
+            "result": result,
+            "total_points": total_points,
+            "max_points": max_points,
+        }
+        super().__init__(
+            event_id=kwargs.get("event_id", str(uuid.uuid4())),
+            event_type="submission_judged",
+            source_domain="judge",
+            target_domain=kwargs.get("target_domain"),
+            occurred_at=kwargs.get("occurred_at", datetime.utcnow()),
+            data=data,
+            **{
+                k: v
+                for k, v in kwargs.items()
+                if k not in ["event_id", "target_domain", "occurred_at"]
+            }
+        )
+        self.submission_id = submission_id
+        self.problem_id = problem_id
+        self.user_id = user_id
+        self.result = result
+        self.total_points = total_points
+        self.max_points = max_points
 
 
-@dataclass
 class CodeExecutionStartedEvent(DomainEvent):
     """コード実行開始イベント"""
 
-    execution_id: uuid.UUID
-    language: str
+    def __init__(self, execution_id: uuid.UUID, language: str, **kwargs):
+        data = {
+            "execution_id": str(execution_id),
+            "language": language,
+        }
+        super().__init__(
+            event_id=kwargs.get("event_id", str(uuid.uuid4())),
+            event_type="code_execution_started",
+            source_domain="judge",
+            target_domain=kwargs.get("target_domain"),
+            occurred_at=kwargs.get("occurred_at", datetime.utcnow()),
+            data=data,
+            **{
+                k: v
+                for k, v in kwargs.items()
+                if k not in ["event_id", "target_domain", "occurred_at"]
+            }
+        )
+        self.execution_id = execution_id
+        self.language = language
 
 
-@dataclass
 class CodeExecutionCompletedEvent(DomainEvent):
     """コード実行完了イベント"""
 
-    execution_id: uuid.UUID
-    status: str
-    execution_time: float
-    memory_usage: int
+    def __init__(
+        self,
+        execution_id: uuid.UUID,
+        status: str,
+        execution_time: float,
+        memory_usage: int,
+        **kwargs
+    ):
+        data = {
+            "execution_id": str(execution_id),
+            "status": status,
+            "execution_time": execution_time,
+            "memory_usage": memory_usage,
+        }
+        super().__init__(
+            event_id=kwargs.get("event_id", str(uuid.uuid4())),
+            event_type="code_execution_completed",
+            source_domain="judge",
+            target_domain=kwargs.get("target_domain"),
+            occurred_at=kwargs.get("occurred_at", datetime.utcnow()),
+            data=data,
+            **{
+                k: v
+                for k, v in kwargs.items()
+                if k not in ["event_id", "target_domain", "occurred_at"]
+            }
+        )
+        self.execution_id = execution_id
+        self.status = status
+        self.execution_time = execution_time
+        self.memory_usage = memory_usage
 
 
-@dataclass
 class JudgeQueueUpdatedEvent(DomainEvent):
     """ジャッジキュー更新イベント"""
 
-    queue_id: uuid.UUID
-    status: str
-    assigned_worker: Optional[str] = None
+    def __init__(
+        self,
+        queue_id: uuid.UUID,
+        status: str,
+        assigned_worker: Optional[str] = None,
+        **kwargs
+    ):
+        data = {
+            "queue_id": str(queue_id),
+            "status": status,
+            "assigned_worker": assigned_worker,
+        }
+        super().__init__(
+            event_id=kwargs.get("event_id", str(uuid.uuid4())),
+            event_type="judge_queue_updated",
+            source_domain="judge",
+            target_domain=kwargs.get("target_domain"),
+            occurred_at=kwargs.get("occurred_at", datetime.utcnow()),
+            data=data,
+            **{
+                k: v
+                for k, v in kwargs.items()
+                if k not in ["event_id", "target_domain", "occurred_at"]
+            }
+        )
+        self.queue_id = queue_id
+        self.status = status
+        self.assigned_worker = assigned_worker

@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Any
 from uuid import UUID
 
-from ..domain.models import Book, Problem, JudgeCase, UserProblemStatus
+from ...domain.models import Book, Problem, JudgeCase
 
 
 class BookRepositoryInterface(ABC):
@@ -105,32 +105,33 @@ class JudgeCaseRepositoryInterface(ABC):
         pass
 
 
-class UserProblemStatusRepositoryInterface(ABC):
-    """UserProblemStatus repository interface"""
-
-    @abstractmethod
-    async def create(self, status: UserProblemStatus) -> UserProblemStatus:
-        """Create a new user problem status"""
-        pass
-
-    @abstractmethod
-    async def find_by_user_and_problem(
-        self, user_id: str, problem_id: UUID
-    ) -> Optional[UserProblemStatus]:
-        """Find user problem status by user ID and problem ID"""
-        pass
-
-    @abstractmethod
-    async def find_by_user_id(self, user_id: str) -> List[UserProblemStatus]:
-        """Find all user problem statuses by user ID"""
-        pass
-
-    @abstractmethod
-    async def update(self, status: UserProblemStatus) -> UserProblemStatus:
-        """Update user problem status"""
-        pass
-
-    @abstractmethod
-    async def delete(self, user_id: str, problem_id: UUID) -> bool:
-        """Delete user problem status"""
-        pass
+# TODO: UserProblemStatusモデルが未実装のため一時コメントアウト
+# class UserProblemStatusRepositoryInterface(ABC):
+#     """UserProblemStatus repository interface"""
+#
+#     @abstractmethod
+#     async def create(self, status: UserProblemStatus) -> UserProblemStatus:
+#         """Create a new user problem status"""
+#         pass
+#
+#     @abstractmethod
+#     async def find_by_user_and_problem(
+#         self, user_id: str, problem_id: UUID
+#     ) -> Optional[UserProblemStatus]:
+#         """Find user problem status by user ID and problem ID"""
+#         pass
+#
+#     @abstractmethod
+#     async def find_by_user_id(self, user_id: str) -> List[UserProblemStatus]:
+#         """Find all user problem statuses by user ID"""
+#         pass
+#
+#     @abstractmethod
+#     async def update(self, status: UserProblemStatus) -> UserProblemStatus:
+#         """Update user problem status"""
+#         pass
+#
+#     @abstractmethod
+#     async def delete(self, user_id: str, problem_id: UUID) -> bool:
+#         """Delete user problem status"""
+#         pass

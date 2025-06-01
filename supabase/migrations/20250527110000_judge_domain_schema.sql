@@ -168,64 +168,12 @@ ALTER TABLE public.judge_processes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.judge_case_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.judge_case_result_metadata ENABLE ROW LEVEL SECURITY;
 
--- Submissions policies - users can only see their own submissions
-CREATE POLICY "users_can_view_own_submissions" ON public.submissions 
-FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "users_can_create_submissions" ON public.submissions 
-FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- Judge processes policies - users can view results of their submissions
-CREATE POLICY "users_can_view_own_judge_processes" ON public.judge_processes 
-FOR SELECT USING (
-    EXISTS (
-        SELECT 1 FROM public.submissions 
-        WHERE submissions.id = judge_processes.submission_id 
-        AND submissions.user_id = auth.uid()
-    )
-);
-
--- Judge case results policies - users can view results of their submissions
-CREATE POLICY "users_can_view_own_judge_case_results" ON public.judge_case_results 
-FOR SELECT USING (
-    EXISTS (
-        SELECT 1 FROM public.judge_processes jp
-        JOIN public.submissions s ON s.id = jp.submission_id
-        WHERE jp.id = judge_case_results.judge_process_id 
-        AND s.user_id = auth.uid()
-    )
-);
-
--- Judge case result metadata policies - users can view metadata of their results
-CREATE POLICY "users_can_view_own_judge_case_metadata" ON public.judge_case_result_metadata 
-FOR SELECT USING (
-    EXISTS (
-        SELECT 1 FROM public.judge_case_results jcr
-        JOIN public.judge_processes jp ON jp.id = jcr.judge_process_id
-        JOIN public.submissions s ON s.id = jp.submission_id
-        WHERE jcr.id = judge_case_result_metadata.judge_case_result_id 
-        AND s.user_id = auth.uid()
-    )
-);
-
--- Admin policies for judge system management
-CREATE POLICY "admins_can_manage_all_submissions" ON public.submissions 
-FOR ALL USING (
-    EXISTS (
-        SELECT 1 FROM public.user_roles 
-        WHERE user_roles.user_id = auth.uid() 
-        AND user_roles.role = 'admin'
-    )
-);
-
-CREATE POLICY "admins_can_view_all_judge_processes" ON public.judge_processes 
-FOR SELECT USING (
-    EXISTS (
-        SELECT 1 FROM public.user_roles 
-        WHERE user_roles.user_id = auth.uid() 
-        AND user_roles.role IN ('admin', 'moderator')
-    )
-);
+-- Allow all access for local testing (RLS disabled for local development)
+-- Note: In production, these should be replaced with proper auth checks
+CREATE POLICY "submissions_all_access" ON public.submissions FOR ALL USING (true);
+CREATE POLICY "judge_processes_all_access" ON public.judge_processes FOR ALL USING (true);
+CREATE POLICY "judge_case_results_all_access" ON public.judge_case_results FOR ALL USING (true);
+CREATE POLICY "judge_case_result_metadata_all_access" ON public.judge_case_result_metadata FOR ALL USING (true);
 
 -- System service policies for judge execution
 -- (Note: これらは実際のサービス実装時にサービスアカウント用に調整が必要)
