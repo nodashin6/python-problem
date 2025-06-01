@@ -297,7 +297,9 @@ class Content(Entity):
 
     title: str = Field(..., min_length=1, max_length=200)
     content: str = Field(..., min_length=1)
-    content_type: str = Field(..., min_length=1)  # Using string instead of ContentType enum for now
+    content_type: str = Field(
+        ..., min_length=1
+    )  # Using string instead of ContentType enum for now
     author_id: UUID4
     is_published: bool = Field(default=False)
     language: str = Field(default="en", min_length=2, max_length=5)

@@ -11,6 +11,7 @@ from ...domain.models import Book, Tag
 from ...domain.repositories.book_repository import BookRepository
 from ....shared.database import DatabaseManager, BaseRepository
 from ....shared.logging import get_logger
+
 # from ....const import BookStatus  # TODO: BookStatus未定義のため一時コメントアウト
 
 logger = get_logger(__name__)
@@ -126,7 +127,9 @@ class BookRepositoryImpl(BookRepository):
             logger.error(f"Failed to find public books: {e}")
             return []
 
-    async def find_by_status(self, status: str) -> List[Book]:  # TODO: BookStatus -> str に一時変更
+    async def find_by_status(
+        self, status: str
+    ) -> List[Book]:  # TODO: BookStatus -> str に一時変更
         """ステータスでブックを検索"""
         try:
             conditions = {"status": status.value}
@@ -337,7 +340,9 @@ class BookRepositoryImpl(BookRepository):
                 id=uuid.UUID(data["id"]),
                 title=data["title"],
                 description=data.get("description", ""),
-                status=data["status"],  # TODO: BookStatus(data["status"]) -> data["status"] に一時変更
+                status=data[
+                    "status"
+                ],  # TODO: BookStatus(data["status"]) -> data["status"] に一時変更
                 author_id=uuid.UUID(data["author_id"]),
                 is_public=data["is_public"],
                 tags=tags,
