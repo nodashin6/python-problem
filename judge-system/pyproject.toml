@@ -1,9 +1,14 @@
 [tool.poetry]
 name = "judge-system"
-version = "0.1.1"
+version = "0.2.0"
 description = ""
 authors = ["nodashin <nodashin.jpn@gmail.com>"]
-packages = [{include = "src"}]
+packages = [
+    {include = "src"},
+    {include = "core", from = "pkg/core"},
+    {include = "jdg", from = "pkg/jdg"},
+    {include = "seed", from = "pkg/seed"},
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"
