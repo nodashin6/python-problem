@@ -118,7 +118,7 @@ export default function ProblemPage() {
       return;
     }
     
-    // 送信時にテストケースを取得（初回のみ）
+    // 送信時にテストケースを取得 (初回のみ) 
     if (availableJudgeCases.length === 0 && activeJudgeCaseIds.length === 0) {
       await loadJudgeCases();
     }

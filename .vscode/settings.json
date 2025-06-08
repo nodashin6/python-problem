@@ -20,5 +20,38 @@
   ],
   "[typescript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    },
+    "editor.formatOnSave": true
+  },
+  "python.defaultInterpreterPath": "./backend/.venv/bin/python",
+  "python.analysis.autoImportCompletions": true,
+  "ruff.nativeServer": true,
+  "[sql]": {
+    "editor.formatOnSave": false,
+    "editor.wordWrap": "off",
+    "editor.rulers": [],
+    "editor.defaultFormatter": null,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false,
+    "prettier.enable": false,
+    "editor.codeActionsOnSave": {},
+    "editor.formatOnPaste": false,
+    "editor.formatOnType": false
+  },
+  "sql.format.alignColumnDefinitions": false,
+  "sql.format.keywordCase": "upper",
+  "sql.format.identifierCase": "lower",
+  "prettier-sql-vscode.enable": false,
+  "inferrinizzard.prettier-sql-vscode.enable": false,
+  "editor.wordWrapColumn": 120,
+  "files.associations": {
+    "*.sql": "sql"
   }
 }

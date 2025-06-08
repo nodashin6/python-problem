@@ -60,11 +60,11 @@ export default function ProblemListPage() {
           ) : (
             <div className="grid gap-6 md:grid-cols-2">
               {problems.map((problem) => {
-                // タイトルを取得（title属性があればそれを使うか、マークダウンからタイトルを抽出）
+                // タイトルを取得 (title属性があればそれを使うか、マークダウンからタイトルを抽出) 
                 const title = problem.title || 
                   (problem.markdown ? extractTitle(problem.markdown) : `問題 ${problem.id}`);
                 
-                // 説明を取得（マークダウンからコンテンツを抽出）
+                // 説明を取得 (マークダウンからコンテンツを抽出) 
                 const content = problem.markdown ? extractContent(problem.markdown) : "問題文がありません";
                 
                 return (

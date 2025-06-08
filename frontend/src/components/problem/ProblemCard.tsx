@@ -8,7 +8,7 @@ interface ProblemCardProps {
   markdownContent?: string;
   id?: string; // 問題一覧表示用に追加
   isListItem?: boolean; // リスト表示かどうかのフラグ
-  description?: string; // 問題の説明（リスト表示用）
+  description?: string; // 問題の説明 (リスト表示用) 
   level?: number; // 問題の難易度 (1-10)
   solved?: boolean; // 解いた問題かどうか
   submission_count?: number; // 提出回数
