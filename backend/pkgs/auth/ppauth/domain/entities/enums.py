@@ -14,29 +14,30 @@ class UserRole(str, Enum):
 class Permission(str, Enum):
     """権限"""
 
-    # 問題管理
-    PROBLEM_CREATE = "problem:create"
-    PROBLEM_READ = "problem:read"
-    PROBLEM_UPDATE = "problem:update"
-    PROBLEM_DELETE = "problem:delete"
+    # 問題 ~ judge の情報は、拡張パッケージ側で管理する判断であるため、ここでは定義しない
+    # # 問題管理
+    # PROBLEM_CREATE = "problem:create"
+    # PROBLEM_READ = "problem:read"
+    # PROBLEM_UPDATE = "problem:update"
+    # PROBLEM_DELETE = "problem:delete"
 
-    # テストケース管理
-    JUDGECASE_CREATE = "judgecase:create"
-    JUDGECASE_READ = "judgecase:read"
-    JUDGECASE_UPDATE = "judgecase:update"
-    JUDGECASE_DELETE = "judgecase:delete"
+    # # テストケース管理
+    # JUDGECASE_CREATE = "judgecase:create"
+    # JUDGECASE_READ = "judgecase:read"
+    # JUDGECASE_UPDATE = "judgecase:update"
+    # JUDGECASE_DELETE = "judgecase:delete"
 
-    # 提出管理
-    SUBMISSION_CREATE = "submission:create"
-    SUBMISSION_READ = "submission:read"
-    SUBMISSION_READ_ALL = "submission:read_all"
-    SUBMISSION_DELETE = "submission:delete"
+    # # 提出管理
+    # SUBMISSION_CREATE = "submission:create"
+    # SUBMISSION_READ = "submission:read"
+    # SUBMISSION_READ_ALL = "submission:read_all"
+    # SUBMISSION_DELETE = "submission:delete"
 
-    # ジャッジ管理
-    JUDGE_EXECUTE = "judge:execute"
-    JUDGE_READ = "judge:read"
-    JUDGE_READ_ALL = "judge:read_all"
-    JUDGE_MANAGE = "judge:manage"
+    # # ジャッジ管理
+    # JUDGE_EXECUTE = "judge:execute"
+    # JUDGE_READ = "judge:read"
+    # JUDGE_READ_ALL = "judge:read_all"
+    # JUDGE_MANAGE = "judge:manage"
 
     # ユーザー管理
     USER_CREATE = "user:create"
@@ -53,22 +54,6 @@ class Permission(str, Enum):
 # ロールと権限のマッピング
 ROLE_PERMISSIONS = {
     UserRole.ADMIN: [
-        Permission.PROBLEM_CREATE,
-        Permission.PROBLEM_READ,
-        Permission.PROBLEM_UPDATE,
-        Permission.PROBLEM_DELETE,
-        Permission.JUDGECASE_CREATE,
-        Permission.JUDGECASE_READ,
-        Permission.JUDGECASE_UPDATE,
-        Permission.JUDGECASE_DELETE,
-        Permission.SUBMISSION_CREATE,
-        Permission.SUBMISSION_READ,
-        Permission.SUBMISSION_READ_ALL,
-        Permission.SUBMISSION_DELETE,
-        Permission.JUDGE_EXECUTE,
-        Permission.JUDGE_READ,
-        Permission.JUDGE_READ_ALL,
-        Permission.JUDGE_MANAGE,
         Permission.USER_CREATE,
         Permission.USER_READ,
         Permission.USER_UPDATE,
@@ -78,27 +63,14 @@ ROLE_PERMISSIONS = {
         Permission.SYSTEM_MONITOR,
     ],
     UserRole.MODERATOR: [
-        Permission.PROBLEM_READ,
-        Permission.PROBLEM_UPDATE,
-        Permission.JUDGECASE_READ,
-        Permission.JUDGECASE_UPDATE,
-        Permission.SUBMISSION_READ,
-        Permission.SUBMISSION_READ_ALL,
-        Permission.JUDGE_READ,
-        Permission.JUDGE_READ_ALL,
         Permission.USER_READ,
         Permission.SYSTEM_MONITOR,
     ],
     UserRole.USER: [
-        Permission.PROBLEM_READ,
-        Permission.JUDGECASE_READ,
-        Permission.SUBMISSION_CREATE,
-        Permission.SUBMISSION_READ,
-        Permission.JUDGE_EXECUTE,
-        Permission.JUDGE_READ,
+        Permission.USER_READ,
+        Permission.USER_UPDATE,
     ],
     UserRole.GUEST: [
-        Permission.PROBLEM_READ,
-        Permission.JUDGECASE_READ,
+        Permission.USER_READ,
     ],
 }

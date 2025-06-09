@@ -123,7 +123,7 @@ class AuthenticationService(IDomainService):
         # 今回は簡略化
 
         # ユーザーをメールで検索 (実装例)
-        # user_entity = await self.user_service.get_user_by_email(email)
+        # user_entity = await self.user_service.read_user_by_email(email)
         # if not user_entity or not user_entity.is_active:
         #     return None
 

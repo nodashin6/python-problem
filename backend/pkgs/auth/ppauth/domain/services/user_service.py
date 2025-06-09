@@ -96,11 +96,11 @@ class UserService(IDomainService):
 
         return user
 
-    async def get_user_role(self, user_id: UUID) -> UserRoleEntity | None:
+    async def read_user_role(self, user_id: UUID) -> UserRoleEntity | None:
         """Get primary role for a user"""
         return await self.user_role_repo.find_by_user_id(user_id)
 
-    async def get_user_roles(self, user_id: UUID) -> list[UserRoleEntity]:
+    async def read_user_roles(self, user_id: UUID) -> list[UserRoleEntity]:
         """Get all roles for a user (legacy support)"""
         return await self.user_role_repo.list_roles_by_user_id(user_id)
 

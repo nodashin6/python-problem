@@ -1,170 +1,140 @@
 """
-FastAPI dependencies for authentication and authorization
+Dependency injection for PPAuth application
 """
 
-from typing import Optional
-
-import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from supabase import Client
-
-from src.const import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET_KEY
-from src.utils.logging import get_logger
 
 from ..domain.entities.enums import UserRole
 from ..domain.models.user import User
-from ..domain.services.auth_service import AuthenticationService, AuthorizationService, JWTManager
+from ..domain.services.auth_service import AuthenticationService
 from ..domain.services.user_service import UserService
-from ..infrastructure.supabase.repositories.user_repository_impl import UserRepositoryImpl
-from ..infrastructure.supabase.repositories.user_role_repository_impl import UserRoleRepositoryImpl
+from ..usecase.create_user_usecase import CreateUserUseCase
+from ..usecase.delete_user_usecase import DeleteUserUseCase
+from ..usecase.read_user_aggregate_usecase import ReadActiveUsersUseCase
+from ..usecase.read_user_by_email_usecase import ReadUserByEmailUseCase
+from ..usecase.read_user_by_id_usecase import ReadUserByIdUseCase
+from ..usecase.read_users_by_role_usecase import ReadUsersByRoleUseCase
+from ..usecase.update_user_usecase import UpdateUserUseCase
 
-logger = get_logger(__name__)
-
-# FastAPI Security
 security = HTTPBearer()
 
 
-def get_supabase_client() -> Client:
-    """Get Supabase client (should be implemented elsewhere)"""
-    # This should be implemented to return your actual Supabase client
-    raise NotImplementedError("Supabase client not configured")
-
-
-def get_user_repository(client: Client = Depends(get_supabase_client)) -> UserRepositoryImpl:
-    """Get user repository"""
-    return UserRepositoryImpl(client)
-
-
-def get_user_role_repository(client: Client = Depends(get_supabase_client)) -> UserRoleRepositoryImpl:
-    """Get user role repository"""
-    return UserRoleRepositoryImpl(client)
-
-
-def get_jwt_manager() -> JWTManager:
-    """Get JWT manager"""
-    return JWTManager()
-
-
-def get_auth_service(jwt_manager: JWTManager = Depends(get_jwt_manager)) -> AuthenticationService:
+# Service dependencies
+async def get_auth_service() -> AuthenticationService:
     """Get authentication service"""
-    return AuthenticationService(jwt_manager)
+    # TODO: 実際の実装では DI コンテナから取得
 
 
-def get_authorization_service() -> AuthorizationService:
-    """Get authorization service"""
-    return AuthorizationService()
-
-
-def get_user_service(
-    user_repo: UserRepositoryImpl = Depends(get_user_repository),
-    user_role_repo: UserRoleRepositoryImpl = Depends(get_user_role_repository),
-) -> UserService:
+async def get_user_service() -> UserService:
     """Get user service"""
-    return UserService(user_repo, user_role_repo)
+    # TODO: 実際の実装では DI コンテナから取得
 
 
-async def get_current_user_from_token(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    jwt_manager: JWTManager = Depends(get_jwt_manager),
-) -> User:
-    """Extract and validate token to get user"""
-    try:
-        # Verify token and extract user
-        user = jwt_manager.verify_token(credentials.credentials)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or expired token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        return user
-    except jwt.InvalidTokenError as e:
-        logger.warning(f"Invalid token: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from e
-    except Exception as e:
-        logger.error(f"Token validation error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token validation failed",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from e
-
-
-async def get_current_user(
-    token_user: User = Depends(get_current_user_from_token),
+# Use case dependencies
+async def get_create_user_usecase(
     user_service: UserService = Depends(get_user_service),
+) -> CreateUserUseCase:
+    """Get create user use case"""
+    return CreateUserUseCase(user_service=user_service)
+
+
+async def get_update_user_usecase(
+    user_service: UserService = Depends(get_user_service),
+) -> UpdateUserUseCase:
+    """Get update user use case"""
+    return UpdateUserUseCase(user_service=user_service)
+
+
+async def get_delete_user_usecase(
+    user_service: UserService = Depends(get_user_service),
+) -> DeleteUserUseCase:
+    """Get delete user use case"""
+    return DeleteUserUseCase(user_service=user_service)
+
+
+async def get_read_user_by_id_usecase(
+    user_service: UserService = Depends(get_user_service),
+) -> ReadUserByIdUseCase:
+    """Get read user by ID use case"""
+    return ReadUserByIdUseCase(user_service=user_service)
+
+
+async def get_read_user_by_email_usecase(
+    user_service: UserService = Depends(get_user_service),
+) -> ReadUserByEmailUseCase:
+    """Get read user by email use case"""
+    return ReadUserByEmailUseCase(user_service=user_service)
+
+
+async def get_read_users_by_role_usecase(
+    user_service: UserService = Depends(get_user_service),
+) -> ReadUsersByRoleUseCase:
+    """Get read users by role use case"""
+    return ReadUsersByRoleUseCase(user_service=user_service)
+
+
+async def get_read_active_users_usecase() -> ReadActiveUsersUseCase:
+    """Get read active users use case"""
+    # TODO: UserAggregateReadRepository の依存性注入が必要
+
+
+# Authentication dependencies
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    auth_service: AuthenticationService = Depends(get_auth_service),
 ) -> User:
     """Get current authenticated user"""
     try:
-        # トークンから取得したユーザー情報をそのまま使用するか、
-        # 必要に応じてDBから最新情報を取得
-        user = await user_service.get_user(str(token_user.id))
+        # Token validation and user retrieval
+        token = credentials.credentials
+        user = await auth_service.get_user_from_token(token)
+
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found",
+                detail="Invalid authentication credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        # UserServiceから取得したユーザーにis_activeフィールドがない場合は
-        # トークンユーザーを使用
-        return token_user
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User account is deactivated",
+            )
+
+        return user
+
     except HTTPException:
+        # Re-raise HTTP exceptions as-is
         raise
-    except Exception as e:
-        logger.error(f"Failed to get current user: {e}")
-        # エラーの場合はトークンから取得したユーザーを返す
-        return token_user
-
-
-async def get_optional_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(HTTPBearer(auto_error=False)),
-    jwt_manager: JWTManager = Depends(get_jwt_manager),
-) -> User | None:
-    """Get current user if authenticated, otherwise None"""
-    if not credentials:
-        return None
-
-    try:
-        user = jwt_manager.verify_token(credentials.credentials)
-        if user:
-            return user
-        return None
-    except Exception:
-        # トークンが無効な場合もNoneを返す
-        return None
+    except Exception as err:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from err
 
 
 async def require_admin(
     current_user: User = Depends(get_current_user),
-    auth_service: AuthorizationService = Depends(get_authorization_service),
 ) -> User:
     """Require admin role"""
-    if not auth_service.check_role(current_user, UserRole.ADMIN):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin role required")
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required",
+        )
     return current_user
 
 
-async def require_moderator(
+async def require_moderator_or_admin(
     current_user: User = Depends(get_current_user),
-    auth_service: AuthorizationService = Depends(get_authorization_service),
 ) -> User:
     """Require moderator or admin role"""
-    if not (
-        auth_service.check_role(current_user, UserRole.MODERATOR)
-        or auth_service.check_role(current_user, UserRole.ADMIN)
-    ):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Moderator role required")
-    return current_user
-
-
-async def require_verified_email(current_user: User = Depends(get_current_user)) -> User:
-    """Require verified email"""
-    # Note: email_verifiedフィールドがUserモデルに存在しない場合は追加が必要
-    # 今回は実装をスキップ
+    if current_user.role not in [UserRole.MODERATOR, UserRole.ADMIN]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Moderator or admin privileges required",
+        )
     return current_user

@@ -27,7 +27,7 @@ class TestReadUserByIdUseCase:
     """Test cases for ReadUserByIdUseCase"""
 
     @pytest.mark.asyncio
-    async def test_get_user_by_id_success(
+    async def test_read_user_by_id_success(
         self, user_service: UserService, sample_user: UserEntity, sample_user_role: UserRoleEntity
     ):
         """Test successful user retrieval by ID"""
@@ -60,7 +60,7 @@ class TestReadUserByIdUseCase:
         user_service.user_repo.read.assert_called_once_with(user_id)
 
     @pytest.mark.asyncio
-    async def test_get_user_by_id_not_found(self, user_service: UserService):
+    async def test_read_user_by_id_not_found(self, user_service: UserService):
         """Test user retrieval when user is not found"""
         # Arrange
         user_id = uuid4()
@@ -77,7 +77,7 @@ class TestReadUserByIdUseCase:
         assert f"User with ID {user_id} not found" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_get_user_with_multiple_roles(self, user_service: UserService, sample_user: UserEntity):
+    async def test_read_user_with_multiple_roles(self, user_service: UserService, sample_user: UserEntity):
         """Test user retrieval with user entity validation"""
         # Arrange
         user_id = sample_user.id
@@ -108,7 +108,7 @@ class TestReadUserByEmailUseCase:
     """Test cases for ReadUserByEmailUseCase"""
 
     @pytest.mark.asyncio
-    async def test_get_user_by_email_success(self, user_service: UserService, sample_user: UserEntity):
+    async def test_read_user_by_email_success(self, user_service: UserService, sample_user: UserEntity):
         """Test successful user retrieval by email"""
         # Arrange
         email = sample_user.email
@@ -130,7 +130,7 @@ class TestReadUserByEmailUseCase:
         user_service.user_repo.find_by_email.assert_called_once_with(email)
 
     @pytest.mark.asyncio
-    async def test_get_user_by_email_not_found(self, user_service: UserService):
+    async def test_read_user_by_email_not_found(self, user_service: UserService):
         """Test user retrieval when email is not found"""
         # Arrange
         email = "nonexistent@example.com"
@@ -151,7 +151,7 @@ class TestReadUsersByRoleUseCase:
     """Test cases for ReadUsersByRoleUseCase"""
 
     @pytest.mark.asyncio
-    async def test_get_users_by_role_success(
+    async def test_read_users_by_role_success(
         self, user_service: UserService, sample_user: UserEntity, admin_user: UserEntity
     ):
         """Test successful users retrieval by role"""
@@ -190,7 +190,7 @@ class TestReadUsersByRoleUseCase:
         user_service.user_role_repo.count_by_role.assert_called_once_with(role)
 
     @pytest.mark.asyncio
-    async def test_get_users_by_role_empty_result(self, user_service: UserService):
+    async def test_read_users_by_role_empty_result(self, user_service: UserService):
         """Test users retrieval when no users have the role"""
         # Arrange
         role = UserRole.ADMIN
@@ -210,7 +210,7 @@ class TestReadUsersByRoleUseCase:
         assert result.total_count == 0
 
     @pytest.mark.asyncio
-    async def test_get_users_by_role_with_pagination(
+    async def test_read_users_by_role_with_pagination(
         self, user_service: UserService, sample_user: UserEntity
     ):
         """Test users retrieval with pagination parameters"""
@@ -244,7 +244,7 @@ class TestReadUsersByRoleUseCase:
         user_service.user_role_repo.find_by_role.assert_called_once_with(role, limit=5, offset=10)
 
     @pytest.mark.asyncio
-    async def test_get_users_by_role_user_not_found(self, user_service: UserService):
+    async def test_read_users_by_role_user_not_found(self, user_service: UserService):
         """Test users retrieval when user role exists but user entity is deleted"""
         # Arrange
         role = UserRole.USER

@@ -7,4 +7,16 @@
         },
         "editor.formatOnSave": true
     },
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [],
+    "python.testing.pytestPath": "poetry",
+    "python.terminal.executeInFileDir": false,
+    "github.copilot.advanced": {
+        "inlineSuggestEnable": true
+    },
+    "github.copilot.chat.preferredLanguage": "ja",
+    // Poetry configuration for pytest execution
+    "python.defaultInterpreterPath": "poetry",
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "python.terminal.activateEnvironment": false
 }

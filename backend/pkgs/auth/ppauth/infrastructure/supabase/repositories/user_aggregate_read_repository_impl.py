@@ -32,7 +32,7 @@ class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepos
     async def read(self, id: UUID4) -> User:
         """Read user aggregate by ID"""
         try:
-            user_data = await self._get_user_with_role(id)
+            user_data = await self._read_user_with_role(id)
 
             if not user_data:
                 from pydddi.infrastructure.repository import RecordNotFoundError
@@ -48,7 +48,7 @@ class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepos
     async def read_optional(self, id: UUID4) -> User | None:
         """Read user aggregate by ID, returning None if not found"""
         try:
-            user_data = await self._get_user_with_role(id)
+            user_data = await self._read_user_with_role(id)
 
             if not user_data:
                 return None
@@ -163,7 +163,7 @@ class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepos
             logger.error(f"Failed to list users: {e}")
             return []
 
-    async def _get_user_with_role(self, user_id: UUID4) -> ReadAggregateUserSchema | None:
+    async def _read_user_with_role(self, user_id: UUID4) -> ReadAggregateUserSchema | None:
         """Get user with role data"""
         try:
             result = (
