@@ -5,13 +5,12 @@ User aggregate read repository implementation using Supabase
 from typing import Any
 from uuid import UUID
 
+from ppcore.infrastructure.supabase.repository import SupabaseRepository
 from pydantic import UUID4
+from src.utils import get_logger
 from supabase import Client
 
-from ppcore.infra.supabase.repository import SupabaseRepository
-from src.utils import get_logger
-
-from ....domain.entities.enums import ROLE_PERMISSIONS, UserRole
+from ....domain.enums import ROLE_PERMISSIONS, UserRole
 from ....domain.models.user import User
 from ....domain.repositories.user_aggreate_read_repository import (
     ReadAggregateUserSchema,
@@ -103,7 +102,9 @@ class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepos
             logger.error(f"Failed to find user by username {username}: {e}")
             return None
 
-    async def list_active_users(self, limit: int | None = None, offset: int | None = None) -> list[User]:
+    async def list_active_users(
+        self, limit: int | None = None, offset: int | None = None
+    ) -> list[User]:
         """List active user aggregates"""
         try:
             query = (
@@ -131,7 +132,9 @@ class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepos
             logger.error(f"Failed to list active users: {e}")
             return []
 
-    async def select(self, limit: int | None = None, offset: int | None = None, **filters) -> list[User]:
+    async def select(
+        self, limit: int | None = None, offset: int | None = None, **filters
+    ) -> list[User]:
         """List user aggregates with optional pagination and filtering"""
         try:
             query = (
@@ -163,7 +166,9 @@ class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepos
             logger.error(f"Failed to list users: {e}")
             return []
 
-    async def _read_user_with_role(self, user_id: UUID4) -> ReadAggregateUserSchema | None:
+    async def _read_user_with_role(
+        self, user_id: UUID4
+    ) -> ReadAggregateUserSchema | None:
         """Get user with role data"""
         try:
             result = (

@@ -22,7 +22,7 @@ from ppauth.app.dependencies import (
     get_user_service,
     require_admin,
 )
-from ppauth.domain.entities.enums import Permission, UserRole
+from ppauth.domain.enums import Permission, UserRole
 from ppauth.domain.models.user import User
 from ppauth.usecase.create_user_usecase import CreateUserResult
 from ppauth.usecase.delete_user_usecase import DeleteUserResult

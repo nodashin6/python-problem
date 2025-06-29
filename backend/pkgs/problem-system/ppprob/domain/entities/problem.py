@@ -1,25 +1,25 @@
-from datetime import datetime
+"""
+Problem Entity
+問題エンティティ - 永続化用データ構造
+"""
 
-from pydantic import UUID4, Field, field_validator
-from pydddi import IEntity
+from pydantic import UUID4, Field
+
+from ..models.problem import DifficultyLevel, ProblemStatus
+from .base import BaseEntity
 
 
-class ProblemEntity(IEntity):
+class ProblemEntity(BaseEntity):
     """
-    Represents a problem entity.
-    This class should contain fields that represent the problem's properties.
+    Problem entity for persistence
+    問題エンティティ - データベース永続化用
     """
 
-    id: UUID4
-    title: str
-    description: str
-    published_at: datetime | None = None
-    
-    created_at: datetime
-    updated_at: datetime
-
-    @field_validator("title")
-    def validate_title(cls, value: str) -> str:
-        if not value.strip():
-            raise ValueError("Title cannot be empty")
-        return value.strip()
+    title: str = Field(...)
+    description: str = Field(...)
+    difficulty: DifficultyLevel = Field(...)
+    status: ProblemStatus = Field(default=ProblemStatus.DRAFT)
+    author_id: UUID4 = Field(...)
+    book_id: UUID4 | None = Field(default=None)
+    tags: list[str] = Field(default_factory=list)
+    metadata: dict[str, str] = Field(default_factory=dict)

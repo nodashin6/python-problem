@@ -9,7 +9,7 @@ import pytest
 from pydddi import UseCaseExecutionError
 
 from ppauth.domain.entities import UserEntity, UserRoleEntity
-from ppauth.domain.entities.enums import UserRole
+from ppauth.domain.enums import UserRole
 from ppauth.domain.services.user_service import UserService
 from ppauth.usecase.create_user_usecase import CreateUserCommand, CreateUserUseCase
 from ppauth.usecase.delete_user_usecase import DeleteUserCommand, DeleteUserUseCase

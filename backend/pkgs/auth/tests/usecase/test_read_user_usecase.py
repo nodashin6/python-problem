@@ -9,7 +9,7 @@ import pytest
 from pydddi import UseCaseExecutionError
 
 from ppauth.domain.entities import UserEntity, UserRoleEntity
-from ppauth.domain.entities.enums import UserRole
+from ppauth.domain.enums import UserRole
 from ppauth.domain.services.user_service import UserService
 from ppauth.usecase.read_user_usecase import (
     ReadUserByEmailCommand,

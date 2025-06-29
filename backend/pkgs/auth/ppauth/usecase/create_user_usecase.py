@@ -11,7 +11,7 @@ from pydddi import (
 )
 
 from ..domain.entities import UserEntity
-from ..domain.entities.enums import UserRole
+from ..domain.enums import UserRole
 from ..domain.services.user_service import UserService
 
 

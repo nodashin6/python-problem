@@ -9,7 +9,7 @@ from typing import Any
 from pydantic import UUID4
 from pydddi import IModel
 
-from ..entities.enums import Permission, UserRole
+from ..enums import Permission, UserRole
 
 
 class User(IModel):
@@ -77,7 +77,7 @@ class User(IModel):
     @classmethod
     def from_jwt_claims(cls, data: dict[str, Any]) -> "User":
         """JWTクレームから復元"""
-        from ..entities.enums import Permission, UserRole
+        from ..enums import Permission, UserRole
 
         return cls(
             id=data["user_id"],

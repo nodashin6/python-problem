@@ -4,7 +4,7 @@ from uuid import UUID
 from pydddi import IUseCaseResult
 
 from ..domain.entities import UserEntity
-from ..domain.entities.enums import UserRole
+from ..domain.enums import UserRole
 from ..domain.models import User
 
 

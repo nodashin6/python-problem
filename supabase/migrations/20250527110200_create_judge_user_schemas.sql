@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS public.user_stats (
 CREATE TABLE IF NOT EXISTS public.user_problem_status (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-    problem_id UUID NOT NULL REFERENCES public.problems(id) ON DELETE CASCADE,
+    problem_id UUID NOT NULL REFERENCES public.problem_headers(id) ON DELETE CASCADE,
     solved BOOLEAN DEFAULT FALSE,
     solved_at TIMESTAMP WITH TIME ZONE,
     submission_count INTEGER DEFAULT 0,

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS public.case_files (
 -- 注意: "test_cases"ではなく"judge_cases"を使用 (pytest との競合回避) 
 CREATE TABLE IF NOT EXISTS public.judge_cases (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    problem_id UUID NOT NULL REFERENCES public.problems(id) ON DELETE CASCADE,
+    problem_id UUID NOT NULL REFERENCES public.problem_headers(id) ON DELETE CASCADE,
     input_id UUID NOT NULL REFERENCES public.case_files(id) ON DELETE CASCADE,
     output_id UUID NOT NULL REFERENCES public.case_files(id) ON DELETE CASCADE,
     is_sample BOOLEAN DEFAULT FALSE,
@@ -60,10 +60,10 @@ SELECT
             SELECT
                 1
             FROM
-                public.problems
+                public.problem_headers
             WHERE
-                problems.id = judge_cases.problem_id
-                AND problems.is_published = true
+                problem_headers.id = judge_cases.problem_id
+                AND problem_headers.published_at IS NOT NULL
         )
     );
 

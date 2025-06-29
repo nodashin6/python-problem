@@ -1,57 +1,61 @@
 """
-Core tests specific configuration (Simplified)
+Problem System tests configuration
 """
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock
 from uuid import uuid4
 
+import pytest
+from pydantic import UUID4
+from supabase import Client
 
-@pytest.fixture
-def mock_user_repository():
-    """モックUserRepositoryを作成"""
-    return AsyncMock()
-
-
-@pytest.fixture
-def mock_problem_repository():
-    """モックProblemRepositoryを作成"""
-    return AsyncMock()
+from ppcore.infrastructure.supabase.client import create_client
 
 
 @pytest.fixture
-def mock_book_repository():
-    """モックBookRepositoryを作成"""
-    return AsyncMock()
+def client() -> Client:
+    """Supabaseクライアントのインスタンス"""
+    return create_client()
 
 
 @pytest.fixture
-def mock_judge_case_repository():
-    """モックJudgeCaseRepositoryを作成"""
-    return AsyncMock()
+def created_user(client):
+    """テスト用のユーザーを実際にDBに作成"""
+    user_id = uuid4()
 
+    # usersテーブルに直接テストユーザーを挿入
+    try:
+        response = (
+            client.table("users")
+            .insert(
+                {
+                    "id": str(user_id),
+                    "username": "testuser",
+                    "display_name": "Test User",
+                    "email": "test@example.com",
+                }
+            )
+            .execute()
+        )
 
-@pytest.fixture
-def mock_event_bus():
-    """モックEventBusを作成"""
-    return AsyncMock()
+        class DummyUser:
+            def __init__(self, user_id):
+                self.id = user_id
+                self.username = "testuser"
+                self.display_name = "Test User"
+                self.email = "test@example.com"
 
+        yield DummyUser(user_id)
 
-@pytest.fixture
-def mock_password_manager():
-    """モックPasswordManagerを作成"""
-    return MagicMock()
+        # クリーンアップ: テスト後にユーザーを削除
+        client.table("users").delete().eq("id", str(user_id)).execute()
 
+    except Exception as e:
+        # usersテーブルがない場合は、author_idをNULLにして処理を継続
+        class DummyUser:
+            def __init__(self):
+                self.id = None
+                self.username = "testuser"
+                self.display_name = "Test User"
+                self.email = "test@example.com"
 
-@pytest.fixture
-def mock_jwt_manager():
-    """モックJWTManagerを作成"""
-    return MagicMock()
-
-
-# Pytestマーカーの定義
-def pytest_configure(config):
-    """テストマーカーを登録"""
-    config.addinivalue_line("markers", "core: mark test as core domain test")
-    config.addinivalue_line("markers", "integration: mark test as integration test")
-    config.addinivalue_line("markers", "unit: mark test as unit test")
+        yield DummyUser()

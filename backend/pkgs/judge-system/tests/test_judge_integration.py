@@ -20,9 +20,7 @@ class TestJudgeIntegration(IntegrationTestBase):
 
         # 提出を作成
         source_code = 'print("Hello, World!")'
-        submission_id = await self.create_test_submission(
-            problem["id"], user["id"], source_code
-        )
+        submission_id = await self.create_test_submission(problem["id"], user["id"], source_code)
 
         # 提出が正しく作成されたことを確認
         submission = await self.get_submission_by_id(submission_id)
@@ -50,9 +48,7 @@ class TestJudgeIntegration(IntegrationTestBase):
             "completed_cases": 0,
         }
 
-        process_result = (
-            self.supabase.table("judge_processes").insert(process_data).execute()
-        )
+        process_result = self.supabase.table("judge_processes").insert(process_data).execute()
         assert len(process_result.data) == 1
 
         process = process_result.data[0]
@@ -78,17 +74,12 @@ class TestJudgeIntegration(IntegrationTestBase):
             "completed_cases": 0,
         }
 
-        process_result = (
-            self.supabase.table("judge_processes").insert(process_data).execute()
-        )
+        process_result = self.supabase.table("judge_processes").insert(process_data).execute()
         process_id = process_result.data[0]["id"]
 
         # ジャッジケースを取得
         judge_cases_result = (
-            self.supabase.table("judge_cases")
-            .select("id")
-            .eq("problem_id", problem["id"])
-            .execute()
+            self.supabase.table("judge_cases").select("id").eq("problem_id", problem["id"]).execute()
         )
 
         assert len(judge_cases_result.data) >= 1
@@ -104,9 +95,7 @@ class TestJudgeIntegration(IntegrationTestBase):
             "output": "Hello, World!",
         }
 
-        result = (
-            self.supabase.table("judge_case_results").insert(case_result_data).execute()
-        )
+        result = self.supabase.table("judge_case_results").insert(case_result_data).execute()
         assert len(result.data) == 1
 
         case_result = result.data[0]
@@ -131,9 +120,7 @@ class TestJudgeIntegration(IntegrationTestBase):
                 "status": status,
             }
 
-            result = (
-                self.supabase.table("submissions").insert(submission_data).execute()
-            )
+            result = self.supabase.table("submissions").insert(submission_data).execute()
             assert len(result.data) == 1
             assert result.data[0]["status"] == status
 
@@ -162,9 +149,7 @@ class TestJudgeIntegration(IntegrationTestBase):
                 "status": "pending",
             }
 
-            result = (
-                self.supabase.table("submissions").insert(submission_data).execute()
-            )
+            result = self.supabase.table("submissions").insert(submission_data).execute()
             assert len(result.data) == 1
             assert result.data[0]["language"] == language
 
@@ -186,9 +171,7 @@ class TestJudgeIntegration(IntegrationTestBase):
             "completed_cases": 0,
         }
 
-        process_result = (
-            self.supabase.table("judge_processes").insert(process_data).execute()
-        )
+        process_result = self.supabase.table("judge_processes").insert(process_data).execute()
         process_id = process_result.data[0]["id"]
 
         # プロセス完了の更新
@@ -215,10 +198,7 @@ class TestJudgeIntegration(IntegrationTestBase):
         """提出と問題の関係性をテスト"""
         # 既存の提出を取得
         submissions_result = (
-            self.supabase.table("submissions")
-            .select("*, problem:problems(*)")
-            .limit(1)
-            .execute()
+            self.supabase.table("submissions").select("*, problem:problems(*)").limit(1).execute()
         )
 
         if submissions_result.data:
@@ -234,11 +214,9 @@ class TestJudgeDomainConstraints(IntegrationTestBase):
     async def test_foreign_key_integrity(self):
         """外部キー整合性のテスト"""
         # 提出の外部キー制約
-        submissions_result = (
-            self.supabase.table("submissions").select("problem_id, user_id").execute()
-        )
+        submissions_result = self.supabase.table("submissions").select("problem_id, user_id").execute()
 
-        problems_result = self.supabase.table("problems").select("id").execute()
+        problems_result = self.supabase.table("problem_headers").select("id").execute()
         users_result = self.supabase.table("users").select("id").execute()
 
         problem_ids = {p["id"] for p in problems_result.data}
@@ -250,9 +228,7 @@ class TestJudgeDomainConstraints(IntegrationTestBase):
 
     async def test_judge_process_submission_relationship(self):
         """ジャッジプロセスと提出の関係テスト"""
-        processes_result = (
-            self.supabase.table("judge_processes").select("submission_id").execute()
-        )
+        processes_result = self.supabase.table("judge_processes").select("submission_id").execute()
 
         submissions_result = self.supabase.table("submissions").select("id").execute()
         submission_ids = {s["id"] for s in submissions_result.data}
@@ -264,18 +240,12 @@ class TestJudgeDomainConstraints(IntegrationTestBase):
         """ジャッジケース結果の関係性テスト"""
         # ジャッジケース結果がある場合のテスト
         results = (
-            self.supabase.table("judge_case_results")
-            .select("judge_process_id, judge_case_id")
-            .execute()
+            self.supabase.table("judge_case_results").select("judge_process_id, judge_case_id").execute()
         )
 
         if results.data:
-            processes_result = (
-                self.supabase.table("judge_processes").select("id").execute()
-            )
-            judge_cases_result = (
-                self.supabase.table("judge_cases").select("id").execute()
-            )
+            processes_result = self.supabase.table("judge_processes").select("id").execute()
+            judge_cases_result = self.supabase.table("judge_cases").select("id").execute()
 
             process_ids = {p["id"] for p in processes_result.data}
             judge_case_ids = {jc["id"] for jc in judge_cases_result.data}

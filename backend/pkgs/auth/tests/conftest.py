@@ -22,7 +22,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from ppauth.domain.entities.entities import UserEntity, UserRoleEntity
-from ppauth.domain.entities.enums import UserRole
+from ppauth.domain.enums import UserRole
 from ppauth.domain.repositories.user_repository import UserRepository
 from ppauth.domain.repositories.user_role_respository import UserRoleRepository
 from ppauth.domain.services.auth_service import JWTManager, PasswordManager

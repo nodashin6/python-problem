@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydddi import IReadAggregateRepository, IReadAggregateSchema
 
-from ..entities.enums import Permission, UserRole
+from ..enums import Permission, UserRole
 from ..models.user import User
 
 

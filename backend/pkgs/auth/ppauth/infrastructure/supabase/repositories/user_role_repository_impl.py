@@ -8,11 +8,11 @@ from uuid import UUID
 
 from supabase import Client
 
-from ppcore.infra.supabase.repository import SupabaseRepository
+from ppcore.infrastructure.supabase.repository import SupabaseRepository
 from src.utils import get_logger
 
 from ....domain.entities import UserRoleEntity
-from ....domain.entities.enums import UserRole
+from ....domain.enums import UserRole
 from ....domain.repositories.user_role_respository import (
     CreateUserRoleSchema,
     ReadUserRoleSchema,

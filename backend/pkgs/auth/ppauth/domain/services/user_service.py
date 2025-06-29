@@ -9,7 +9,7 @@ from uuid import UUID
 from pydddi import IDomainService
 
 from ..entities import UserEntity, UserRoleEntity
-from ..entities.enums import UserRole
+from ..enums import UserRole
 from ..repositories.user_repository import UserRepository
 from ..repositories.user_role_respository import UserRoleRepository
 from .auth_service import JWTManager, PasswordManager

@@ -6,11 +6,12 @@ Author: Judge System Team
 Date: 2025-01-12
 """
 
+import logging
 import time
-from typing import Callable
+from collections.abc import Callable
+
 from fastapi import Request, Response
 from fastapi.middleware.base import BaseHTTPMiddleware
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class CoreDomainMiddleware(BaseHTTPMiddleware):
 
         except Exception as e:
             process_time = time.time() - start_time
-            logger.error(f"Core domain error: {str(e)} in {process_time:.3f}s")
+            logger.error(f"Core domain error: {e!s} in {process_time:.3f}s")
             raise
 
 

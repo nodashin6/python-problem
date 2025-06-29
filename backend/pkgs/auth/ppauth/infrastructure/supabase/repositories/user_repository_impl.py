@@ -9,7 +9,7 @@ from uuid import UUID
 
 from supabase import Client
 
-from ppcore.infra.supabase.repository import SupabaseRepository
+from ppcore.infrastructure.supabase.repository import SupabaseRepository
 from src.utils import get_logger
 
 from ....domain.entities import UserEntity

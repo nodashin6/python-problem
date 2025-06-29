@@ -3,11 +3,13 @@ Integration tests configuration
 統合テスト設定
 """
 
-import pytest
 import asyncio
-from typing import AsyncGenerator
-from supabase import create_client, Client
-from src.env import SUPABASE_URL, SUPABASE_SERVICE_KEY
+from collections.abc import AsyncGenerator
+
+import pytest
+from supabase import Client, create_client
+
+from src.env import SUPABASE_SERVICE_KEY, SUPABASE_URL
 from src.seed.seeder import DatabaseSeeder
 
 
@@ -67,19 +69,12 @@ class IntegrationTestBase:
 
     async def get_problem_by_title(self, title: str):
         """タイトルで問題を取得"""
-        result = (
-            self.supabase.table("problems").select("*").eq("title", title).execute()
-        )
+        result = self.supabase.table("problem_headers").select("*").eq("title", title).execute()
         return result.data[0] if result.data else None
 
     async def get_submission_by_id(self, submission_id: str):
         """IDで提出を取得"""
-        result = (
-            self.supabase.table("submissions")
-            .select("*")
-            .eq("id", submission_id)
-            .execute()
-        )
+        result = self.supabase.table("submissions").select("*").eq("id", submission_id).execute()
         return result.data[0] if result.data else None
 
     async def create_test_submission(

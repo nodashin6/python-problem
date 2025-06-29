@@ -6,7 +6,7 @@ from uuid import UUID
 from pydddi import ICreateSchema, ICrudRepository, IReadSchema, IUpdateSchema
 
 from ..entities import UserRoleEntity
-from ..entities.enums import UserRole
+from ..enums import UserRole
 
 
 class CreateUserRoleSchema(ICreateSchema):

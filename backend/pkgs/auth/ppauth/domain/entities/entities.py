@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 from pydantic import UUID4, Field, validator
 from pydddi import IEntity
 
-from . import enums
+from .. import enums
 
 
 # Entities

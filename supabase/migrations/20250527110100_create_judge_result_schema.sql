@@ -16,10 +16,10 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1
         FROM information_schema.tables
-        WHERE table_name = 'problems'
+        WHERE table_name = 'problem_headers'
         AND table_schema = 'public'
     ) THEN 
-        RAISE EXCEPTION 'Core domain must be migrated first. problems table not found.';
+        RAISE EXCEPTION 'Core domain must be migrated first. problem_headers table not found.';
     END IF;
 END $$;
 
@@ -29,7 +29,7 @@ END $$;
 -- Submissions (ユーザー提出) - コード提出の管理
 CREATE TABLE IF NOT EXISTS public.submissions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    problem_id UUID NOT NULL REFERENCES public.problems(id) ON DELETE CASCADE,
+    problem_id UUID NOT NULL REFERENCES public.problem_headers(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     code TEXT NOT NULL,
     language VARCHAR(20) NOT NULL DEFAULT 'python',

@@ -13,7 +13,7 @@ from ppauth.app.dependencies import (
     require_admin,
     require_moderator_or_admin,
 )
-from ppauth.domain.entities.enums import Permission, UserRole
+from ppauth.domain.enums import Permission, UserRole
 from ppauth.domain.models.user import User
 from ppauth.domain.services.auth_service import AuthenticationService
 from ppauth.domain.services.user_service import UserService

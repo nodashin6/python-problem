@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from src import __version__
 
+from src import __version__
 
 core_router = APIRouter(prefix="/api/v1/core", tags=["ppcore"])
 

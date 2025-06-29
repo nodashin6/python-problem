@@ -1,0 +1,37 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Poetry: Debug Tests",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "${workspaceFolder}/tests"
+            ],
+            "console": "integratedTerminal",
+            "python": "poetry run python",
+            "env": {
+                "PYTEST_CURRENT_TEST": "1"
+            },
+            "cwd": "${workspaceFolder}",
+            "justMyCode": false
+        },
+        {
+            "name": "Poetry: Debug Current Test File",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "${file}"
+            ],
+            "console": "integratedTerminal",
+            "python": "poetry run python",
+            "env": {
+                "PYTEST_CURRENT_TEST": "1"
+            },
+            "cwd": "${workspaceFolder}",
+            "justMyCode": false
+        }
+    ]
+}

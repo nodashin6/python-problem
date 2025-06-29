@@ -19,10 +19,7 @@ class TestCoreIntegration(IntegrationTestBase):
 
         # その書籍に属する問題を取得
         problems_result = (
-            self.supabase.table("problems")
-            .select("*")
-            .eq("book_id", book["id"])
-            .execute()
+            self.supabase.table("problem_headers").select("*").eq("book_id", book["id"]).execute()
         )
 
         assert len(problems_result.data) >= 1
@@ -42,17 +39,14 @@ class TestCoreIntegration(IntegrationTestBase):
     async def test_problem_contents_multilingual(self):
         """問題内容の多言語対応をテスト"""
         # 問題を取得
-        problems_result = self.supabase.table("problems").select("*").limit(1).execute()
+        problems_result = self.supabase.table("problem_headers").select("*").limit(1).execute()
         assert len(problems_result.data) >= 1
 
         problem = problems_result.data[0]
 
         # その問題の内容を取得
         contents_result = (
-            self.supabase.table("problem_contents")
-            .select("*")
-            .eq("problem_id", problem["id"])
-            .execute()
+            self.supabase.table("problem_contents").select("*").eq("problem_id", problem["id"]).execute()
         )
 
         assert len(contents_result.data) >= 1
@@ -72,9 +66,7 @@ class TestCoreIntegration(IntegrationTestBase):
         # その問題のジャッジケースを取得
         judge_cases_result = (
             self.supabase.table("judge_cases")
-            .select(
-                "*, input_file:case_files!input_id(*), output_file:case_files!output_id(*)"
-            )
+            .select("*, input_file:case_files!input_id(*), output_file:case_files!output_id(*)")
             .eq("problem_id", problem["id"])
             .execute()
         )
@@ -97,12 +89,7 @@ class TestCoreIntegration(IntegrationTestBase):
         assert user["is_active"] is True
 
         # ユーザーロールを確認
-        role_result = (
-            self.supabase.table("user_roles")
-            .select("*")
-            .eq("user_id", user["id"])
-            .execute()
-        )
+        role_result = self.supabase.table("user_roles").select("*").eq("user_id", user["id"]).execute()
 
         assert len(role_result.data) >= 1
         assert role_result.data[0]["role"] == "user"
@@ -114,12 +101,7 @@ class TestCoreIntegration(IntegrationTestBase):
         assert user is not None
 
         # ユーザー統計を確認 (初期状態)
-        stats_result = (
-            self.supabase.table("user_stats")
-            .select("*")
-            .eq("user_id", user["id"])
-            .execute()
-        )
+        stats_result = self.supabase.table("user_stats").select("*").eq("user_id", user["id"]).execute()
 
         # 統計データが存在するか、または適切に初期化される仕組みがあることを確認
         if stats_result.data:
@@ -130,9 +112,7 @@ class TestCoreIntegration(IntegrationTestBase):
     async def test_problem_difficulty_constraint(self):
         """問題の難易度制約をテスト"""
         # すべての問題の難易度をチェック
-        problems_result = (
-            self.supabase.table("problems").select("difficulty_level").execute()
-        )
+        problems_result = self.supabase.table("problem_headers").select("difficulty_level").execute()
 
         valid_difficulties = ["beginner", "intermediate", "advanced", "expert"]
         for problem in problems_result.data:
@@ -141,9 +121,7 @@ class TestCoreIntegration(IntegrationTestBase):
     async def test_book_order_index(self):
         """書籍の順序インデックスをテスト"""
         # 書籍を順序で取得
-        books_result = (
-            self.supabase.table("books").select("*").order("order_index").execute()
-        )
+        books_result = self.supabase.table("books").select("*").order("order_index").execute()
 
         assert len(books_result.data) >= 2
 
@@ -155,7 +133,7 @@ class TestCoreIntegration(IntegrationTestBase):
 
     async def test_problem_time_memory_limits(self):
         """問題の時間・メモリ制限をテスト"""
-        problems_result = self.supabase.table("problems").select("*").execute()
+        problems_result = self.supabase.table("problem_headers").select("*").execute()
 
         for problem in problems_result.data:
             assert problem["time_limit_ms"] > 0
@@ -170,32 +148,24 @@ class TestCoreDataConsistency(IntegrationTestBase):
     async def test_foreign_key_relationships(self):
         """外部キー関係の整合性をテスト"""
         # すべての問題が有効な書籍IDを持っているか
-        problems_result = self.supabase.table("problems").select("book_id").execute()
+        problems_result = self.supabase.table("problem_headers").select("book_id").execute()
         books_result = self.supabase.table("books").select("id").execute()
 
         book_ids = {book["id"] for book in books_result.data}
 
         for problem in problems_result.data:
-            assert problem["book_id"] in book_ids, (
-                f"Invalid book_id: {problem['book_id']}"
-            )
+            assert problem["book_id"] in book_ids, f"Invalid book_id: {problem['book_id']}"
 
     async def test_judge_cases_file_references(self):
         """ジャッジケースのファイル参照整合性をテスト"""
-        judge_cases_result = (
-            self.supabase.table("judge_cases").select("input_id, output_id").execute()
-        )
+        judge_cases_result = self.supabase.table("judge_cases").select("input_id, output_id").execute()
         case_files_result = self.supabase.table("case_files").select("id").execute()
 
         file_ids = {file["id"] for file in case_files_result.data}
 
         for judge_case in judge_cases_result.data:
-            assert judge_case["input_id"] in file_ids, (
-                f"Invalid input_id: {judge_case['input_id']}"
-            )
-            assert judge_case["output_id"] in file_ids, (
-                f"Invalid output_id: {judge_case['output_id']}"
-            )
+            assert judge_case["input_id"] in file_ids, f"Invalid input_id: {judge_case['input_id']}"
+            assert judge_case["output_id"] in file_ids, f"Invalid output_id: {judge_case['output_id']}"
 
     async def test_user_role_consistency(self):
         """ユーザーロールの整合性をテスト"""
@@ -205,6 +175,4 @@ class TestCoreDataConsistency(IntegrationTestBase):
         user_ids = {user["id"] for user in users_result.data}
 
         for role in roles_result.data:
-            assert role["user_id"] in user_ids, (
-                f"Invalid user_id in role: {role['user_id']}"
-            )
+            assert role["user_id"] in user_ids, f"Invalid user_id in role: {role['user_id']}"

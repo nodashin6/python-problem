@@ -98,9 +98,7 @@ class TestDatabaseSeeder:
         if sample_data.get("users"):
             try:
                 result = (
-                    self.supabase.table("users")
-                    .upsert(sample_data["users"], on_conflict="id")
-                    .execute()
+                    self.supabase.table("users").upsert(sample_data["users"], on_conflict="id").execute()
                 )
                 logger.info(f"Users seeded: {len(result.data)} records")
             except Exception as e:
@@ -122,21 +120,17 @@ class TestDatabaseSeeder:
 
         # 3. Books (ユーザーに依存しない)
         if sample_data.get("books"):
-            result = (
-                self.supabase.table("books")
-                .upsert(sample_data["books"], on_conflict="id")
-                .execute()
-            )
+            result = self.supabase.table("books").upsert(sample_data["books"], on_conflict="id").execute()
             logger.info(f"Books seeded: {len(result.data)} records")
 
-        # 4. Problems
+        # 4. Problem Headers
         if sample_data.get("problems"):
             result = (
-                self.supabase.table("problems")
+                self.supabase.table("problem_headers")
                 .upsert(sample_data["problems"], on_conflict="id")
                 .execute()
             )
-            logger.info(f"Problems seeded: {len(result.data)} records")
+            logger.info(f"Problem Headers seeded: {len(result.data)} records")
 
         # 5. Problem contents
         if sample_data.get("problem_contents"):
@@ -149,9 +143,7 @@ class TestDatabaseSeeder:
                     )
                 except Exception as e:
                     logger.warning(f"Problem content upsert failed: {e}")
-            logger.info(
-                f"Problem contents seeded: {len(sample_data['problem_contents'])} records"
-            )
+            logger.info(f"Problem contents seeded: {len(sample_data['problem_contents'])} records")
 
         # 6. Case files
         if sample_data.get("case_files"):
@@ -176,16 +168,10 @@ class TestDatabaseSeeder:
                     )
 
                     if not existing.data:
-                        result = (
-                            self.supabase.table("judge_cases")
-                            .insert(judge_case)
-                            .execute()
-                        )
+                        result = self.supabase.table("judge_cases").insert(judge_case).execute()
                 except Exception as e:
                     logger.warning(f"Judge case insert failed: {e}")
-            logger.info(
-                f"Judge cases seeded: {len(sample_data['judge_cases'])} records"
-            )
+            logger.info(f"Judge cases seeded: {len(sample_data['judge_cases'])} records")
 
     async def _seed_judge_domain(self, sample_data: dict) -> None:
         """Judge domainのデータを投入"""
@@ -217,15 +203,8 @@ class TestDatabaseSeeder:
 
         for table in judge_tables:
             try:
-                result = (
-                    self.supabase.table(table)
-                    .delete()
-                    .gte("created_at", "1900-01-01")
-                    .execute()
-                )
-                logger.info(
-                    f"Cleared {table}: {len(result.data) if result.data else 0} records"
-                )
+                result = self.supabase.table(table).delete().gte("created_at", "1900-01-01").execute()
+                logger.info(f"Cleared {table}: {len(result.data) if result.data else 0} records")
             except Exception as e:
                 logger.warning(f"Failed to clear {table}: {e}")
 
@@ -236,25 +215,18 @@ class TestDatabaseSeeder:
             "user_roles",
             "judge_cases",
             "case_files",
-            "editorial_contents",
-            "editorials",
+            "edutorial_contents",
+            "edutorial_headers",
             "problem_contents",
-            "problems",
+            "problem_headers",
             "books",
             "users",
         ]
 
         for table in core_tables:
             try:
-                result = (
-                    self.supabase.table(table)
-                    .delete()
-                    .gte("created_at", "1900-01-01")
-                    .execute()
-                )
-                logger.info(
-                    f"Cleared {table}: {len(result.data) if result.data else 0} records"
-                )
+                result = self.supabase.table(table).delete().gte("created_at", "1900-01-01").execute()
+                logger.info(f"Cleared {table}: {len(result.data) if result.data else 0} records")
             except Exception as e:
                 logger.warning(f"Failed to clear {table}: {e}")
 
@@ -267,9 +239,7 @@ class TestDatabaseSeeder:
                 .gte("created_at", "1900-01-01")
                 .execute()
             )
-            logger.info(
-                f"Cleared auth.users: {len(result.data) if result.data else 0} records"
-            )
+            logger.info(f"Cleared auth.users: {len(result.data) if result.data else 0} records")
         except Exception as e:
             logger.warning(f"Failed to clear auth.users: {e}")
 

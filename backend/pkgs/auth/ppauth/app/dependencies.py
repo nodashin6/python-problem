@@ -5,7 +5,7 @@ Dependency injection for PPAuth application
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from ..domain.entities.enums import UserRole
+from ..domain.enums import UserRole
 from ..domain.models.user import User
 from ..domain.services.auth_service import AuthenticationService
 from ..domain.services.user_service import UserService

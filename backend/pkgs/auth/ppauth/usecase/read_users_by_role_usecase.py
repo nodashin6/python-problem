@@ -1,6 +1,6 @@
 from pydddi import IUseCase, IUseCaseCommand, UseCaseExecutionError
 
-from ..domain.entities.enums import UserRole
+from ..domain.enums import UserRole
 from ..domain.services.user_service import UserService
 from .user_types import ReadUserListResult, UserResult
 

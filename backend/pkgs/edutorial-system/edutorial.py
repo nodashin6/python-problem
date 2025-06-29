@@ -1,20 +1,20 @@
-class Editorial(Entity):
-    """Editorial entity"""
+class edutorial(Entity):
+    """edutorial entity"""
 
     problem_id: UUID4
     author_id: UUID4
     is_published: bool = Field(default=False)
 
     def publish(self) -> None:
-        """Publish editorial"""
+        """Publish edutorial"""
         self.is_published = True
         self.updated_at = datetime.utcnow()
 
 
-class EditorialContent(Entity):
-    """Editorial content for internationalization"""
+class edutorialContent(Entity):
+    """edutorial content for internationalization"""
 
-    editorial_id: UUID4
+    edutorial_id: UUID4
     language: str = Field(..., min_length=2, max_length=5)
     content: str = Field(..., min_length=1)
     approach: str = Field(default="")
@@ -28,9 +28,7 @@ class Content(Entity):
 
     title: str = Field(..., min_length=1, max_length=200)
     content: str = Field(..., min_length=1)
-    content_type: str = Field(
-        ..., min_length=1
-    )  # Using string instead of ContentType enum for now
+    content_type: str = Field(..., min_length=1)  # Using string instead of ContentType enum for now
     author_id: UUID4
     is_published: bool = Field(default=False)
     language: str = Field(default="en", min_length=2, max_length=5)

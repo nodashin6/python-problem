@@ -16,7 +16,7 @@ from pydddi import IDomainService
 from src.const import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET_KEY
 from src.utils.logging import get_logger
 
-from ..entities.enums import ROLE_PERMISSIONS, Permission, UserRole
+from ..enums import ROLE_PERMISSIONS, Permission, UserRole
 from ..models.user import User
 
 logger = get_logger(__name__)

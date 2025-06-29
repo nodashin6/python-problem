@@ -8,7 +8,7 @@ from uuid import uuid4
 import pytest
 
 from ppauth.domain.entities import UserEntity, UserRoleEntity
-from ppauth.domain.entities.enums import UserRole
+from ppauth.domain.enums import UserRole
 from ppauth.domain.services.user_service import UserService
 
 

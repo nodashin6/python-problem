@@ -4,4 +4,4 @@ Follows Domain-Driven Design principles with proper entity and value object sepa
 """
 
 from .entities import UserEntity, UserRoleEntity
-from .enums import Permission, UserRole
+from ..enums import Permission, UserRole
