@@ -10,10 +10,10 @@ class ReadUserAggregateByEmailCommand(IUseCaseCommand):
     email: str
 
 
-class ReadUserAggregateByUsernameCommand(IUseCaseCommand):
-    """Command for reading a user aggregate by username"""
+class ReadUserAggregateByuser_nameCommand(IUseCaseCommand):
+    """Command for reading a user aggregate by user_name"""
 
-    username: str
+    user_name: str
 
 
 class ReadActiveUsersCommand(IUseCaseCommand):
@@ -44,24 +44,24 @@ class ReadUserAggregateByEmailUseCase(IUseCase[ReadUserAggregateByEmailCommand, 
             ) from e
 
 
-class ReadUserAggregateByUsernameUseCase(IUseCase[ReadUserAggregateByUsernameCommand, User]):
-    """Use case for reading a user aggregate by username"""
+class ReadUserAggregateByuser_nameUseCase(IUseCase[ReadUserAggregateByuser_nameCommand, User]):
+    """Use case for reading a user aggregate by user_name"""
 
     def __init__(self, user_aggregate_repo: UserAggregateReadRepository):
         self.user_aggregate_repo = user_aggregate_repo
 
-    async def execute(self, command: ReadUserAggregateByUsernameCommand) -> User:
-        """Execute the read user aggregate by username use case"""
+    async def execute(self, command: ReadUserAggregateByuser_nameCommand) -> User:
+        """Execute the read user aggregate by user_name use case"""
         try:
-            user = await self.user_aggregate_repo.read_by_username(command.username)
+            user = await self.user_aggregate_repo.read_by_user_name(command.user_name)
             if not user:
-                raise UseCaseExecutionError(f"User with username {command.username} not found")
+                raise UseCaseExecutionError(f"User with user_name {command.user_name} not found")
 
             return user
 
         except Exception as e:
             raise UseCaseExecutionError(
-                f"Failed to read user aggregate by username: {e!s}",
+                f"Failed to read user aggregate by user_name: {e!s}",
             ) from e
 
 

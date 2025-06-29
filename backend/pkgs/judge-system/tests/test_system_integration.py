@@ -35,9 +35,7 @@ class TestSystemIntegration(IntegrationTestBase):
         # 3. ジャッジケースを取得
         judge_cases = (
             self.supabase.table("judge_cases")
-            .select(
-                "*, input_file:case_files!input_id(*), output_file:case_files!output_id(*)"
-            )
+            .select("*, input_file:case_files!input_id(*), output_file:case_files!output_id(*)")
             .eq("problem_id", problem["id"])
             .execute()
         )
@@ -46,9 +44,7 @@ class TestSystemIntegration(IntegrationTestBase):
 
         # 4. 提出を作成
         correct_code = "a, b = map(int, input().split())\nprint(a + b)"
-        submission_id = await self.create_test_submission(
-            problem["id"], user["id"], correct_code
-        )
+        submission_id = await self.create_test_submission(problem["id"], user["id"], correct_code)
 
         # 5. ジャッジプロセスを作成
         process_data = {
@@ -58,9 +54,7 @@ class TestSystemIntegration(IntegrationTestBase):
             "completed_cases": 0,
         }
 
-        process_result = (
-            self.supabase.table("judge_processes").insert(process_data).execute()
-        )
+        process_result = self.supabase.table("judge_processes").insert(process_data).execute()
         process_id = process_result.data[0]["id"]
 
         # 6. 各ジャッジケースの結果を作成
@@ -86,20 +80,14 @@ class TestSystemIntegration(IntegrationTestBase):
         ).eq("id", process_id).execute()
 
         # 8. 提出ステータス更新
-        self.supabase.table("submissions").update({"status": "completed"}).eq(
-            "id", submission_id
-        ).execute()
+        self.supabase.table("submissions").update({"status": "completed"}).eq("id", submission_id).execute()
 
         # 9. 結果検証
         final_submission = await self.get_submission_by_id(submission_id)
         assert final_submission["status"] == "completed"
 
         final_process = (
-            self.supabase.table("judge_processes")
-            .select("*")
-            .eq("id", process_id)
-            .execute()
-            .data[0]
+            self.supabase.table("judge_processes").select("*").eq("id", process_id).execute().data[0]
         )
         assert final_process["final_verdict"] == "accepted"
         assert final_process["completed_cases"] == len(judge_cases.data)
@@ -145,9 +133,7 @@ class TestSystemIntegration(IntegrationTestBase):
 
         submission_ids = []
         for language, code in languages_and_codes:
-            submission_id = await self.create_test_submission(
-                problem["id"], user["id"], code, language
-            )
+            submission_id = await self.create_test_submission(problem["id"], user["id"], code, language)
             submission_ids.append(submission_id)
 
         # 各提出が正しく作成されていることを確認
@@ -161,10 +147,7 @@ class TestSystemIntegration(IntegrationTestBase):
         """書籍-問題の階層構造テスト"""
         # 書籍と関連問題を取得
         books = (
-            self.supabase.table("books")
-            .select("*, problems:problems(*)")
-            .order("order_index")
-            .execute()
+            self.supabase.table("books").select("*, problems:problems(*)").order("order_index").execute()
         )
 
         assert len(books.data) >= 2
@@ -201,9 +184,7 @@ class TestSystemIntegration(IntegrationTestBase):
 
         # 提出に基づいた統計情報の計算
         total_submissions = len(submissions.data)
-        completed_submissions = len(
-            [s for s in submissions.data if s["status"] == "completed"]
-        )
+        completed_submissions = len([s for s in submissions.data if s["status"] == "completed"])
 
         # 難易度別の統計
         difficulty_stats = {}
@@ -218,9 +199,7 @@ class TestSystemIntegration(IntegrationTestBase):
         # 統計が正しく計算されることを確認
         assert total_submissions >= 0
         assert completed_submissions <= total_submissions
-        assert all(
-            stats["completed"] <= stats["total"] for stats in difficulty_stats.values()
-        )
+        assert all(stats["completed"] <= stats["total"] for stats in difficulty_stats.values())
 
     async def test_judge_case_type_distribution(self):
         """ジャッジケースタイプの分布テスト"""
@@ -272,9 +251,7 @@ class TestSystemPerformance(IntegrationTestBase):
                 "status": "pending",
             }
 
-            result = (
-                self.supabase.table("submissions").insert(submission_data).execute()
-            )
+            result = self.supabase.table("submissions").insert(submission_data).execute()
             submission_ids.append(result.data[0]["id"])
 
         # すべての提出が正しく作成されたことを確認
@@ -293,7 +270,7 @@ class TestSystemPerformance(IntegrationTestBase):
             .select(
                 """
             *,
-            user:users(username, display_name),
+            user:users(user_name, display_name),
             problem:problems(
                 title,
                 difficulty_level,
@@ -317,7 +294,7 @@ class TestSystemPerformance(IntegrationTestBase):
             assert "user" in submission
             assert "problem" in submission
             if submission["user"]:
-                assert "username" in submission["user"]
+                assert "user_name" in submission["user"]
             if submission["problem"]:
                 assert "title" in submission["problem"]
                 if submission["problem"].get("book"):

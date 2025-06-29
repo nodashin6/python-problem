@@ -22,7 +22,7 @@ class TestCreateUserUseCase:
         """Test successful user creation"""
         # Arrange
         command = CreateUserCommand(
-            username="newuser",
+            user_name="newuser",
             display_name="New User",
             email="newuser@example.com",
             password="password123",
@@ -42,7 +42,7 @@ class TestCreateUserUseCase:
         # Assert
         assert isinstance(result, CreateUserResult)
         assert result.user_id == sample_user.id
-        assert result.username == sample_user.username
+        assert result.user_name == sample_user.user_name
         assert result.display_name == sample_user.display_name
         assert result.email == sample_user.email
         assert result.avatar_url == sample_user.avatar_url
@@ -52,7 +52,7 @@ class TestCreateUserUseCase:
         # Verify service was called correctly
         user_service.register_user.assert_called_once_with(
             email=command.email,
-            username=command.username,
+            user_name=command.user_name,
             display_name=command.display_name,
             password=command.password,
             avatar_url=command.avatar_url,
@@ -65,7 +65,7 @@ class TestCreateUserUseCase:
         """Test user creation with minimal required data"""
         # Arrange
         command = CreateUserCommand(
-            username="minimaluser",
+            user_name="minimaluser",
             display_name="Minimal User",
             email="minimal@example.com",
             password="password123",
@@ -73,7 +73,7 @@ class TestCreateUserUseCase:
 
         minimal_user = UserEntity(
             id=sample_user.id,
-            username=command.username,
+            user_name=command.user_name,
             display_name=command.display_name,
             email=command.email,
             password_hash=sample_user.password_hash,
@@ -94,7 +94,7 @@ class TestCreateUserUseCase:
         # Assert
         assert isinstance(result, CreateUserResult)
         assert result.user_id == minimal_user.id
-        assert result.username == minimal_user.username
+        assert result.user_name == minimal_user.user_name
         assert result.display_name == minimal_user.display_name
         assert result.email == minimal_user.email
         assert result.avatar_url is None
@@ -106,7 +106,7 @@ class TestCreateUserUseCase:
         """Test user creation when service fails"""
         # Arrange
         command = CreateUserCommand(
-            username="failuser", display_name="Fail User", email="fail@example.com", password="password123"
+            user_name="failuser", display_name="Fail User", email="fail@example.com", password="password123"
         )
 
         # Mock service to raise an exception
@@ -125,7 +125,7 @@ class TestCreateUserUseCase:
         """Test admin user creation"""
         # Arrange
         command = CreateUserCommand(
-            username="adminuser",
+            user_name="adminuser",
             display_name="Admin User",
             email="admin@example.com",
             password="adminpassword123",
@@ -146,7 +146,7 @@ class TestCreateUserUseCase:
         # Verify service was called with admin role
         user_service.register_user.assert_called_once_with(
             email=command.email,
-            username=command.username,
+            user_name=command.user_name,
             display_name=command.display_name,
             password=command.password,
             avatar_url=command.avatar_url,

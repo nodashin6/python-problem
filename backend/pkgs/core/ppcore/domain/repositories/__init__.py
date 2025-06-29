@@ -3,10 +3,8 @@ Core Domain Repositories
 コアドメインリポジトリ群
 """
 
-from .book_repository import BookRepository
-from .problem_repository import ProblemRepository
+from .supabase_repository import SupabaseRepository
 
 __all__ = [
-    "ProblemRepository",
-    "BookRepository",
+    "SupabaseRepository",
 ]

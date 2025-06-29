@@ -3,9 +3,9 @@ Sample data for testing
 テスト用サンプルデータ
 """
 
-from uuid import uuid4
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+from uuid import uuid4
 
 # Core Domain Sample Data
 SAMPLE_BOOKS = [
@@ -107,14 +107,14 @@ SAMPLE_USERS = [
     {
         "id": "550e8400-e29b-41d4-a716-446655440020",
         "email": "test.user@example.com",
-        "username": "testuser",
+        "user_name": "testuser",
         "display_name": "テストユーザー",
         "bio": "テスト用のユーザーです",
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440021",
         "email": "admin@example.com",
-        "username": "admin",
+        "user_name": "admin",
         "display_name": "管理者",
         "bio": "システム管理者",
     },
@@ -227,7 +227,7 @@ SAMPLE_SUBMISSIONS = [
 ]
 
 
-def get_all_sample_data() -> Dict[str, List[Dict[str, Any]]]:
+def get_all_sample_data() -> dict[str, list[dict[str, Any]]]:
     """すべてのサンプルデータを取得"""
     return {
         "books": SAMPLE_BOOKS,

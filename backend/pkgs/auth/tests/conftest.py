@@ -25,7 +25,7 @@ from ppauth.domain.entities.entities import UserEntity, UserRoleEntity
 from ppauth.domain.enums import UserRole
 from ppauth.domain.repositories.user_repository import UserRepository
 from ppauth.domain.repositories.user_role_respository import UserRoleRepository
-from ppauth.domain.services.auth_service import JWTManager, PasswordManager
+from backend.pkgs.auth.ppauth.domain.helpers.authentificator.authentificator import JWTManager, PasswordManager
 from ppauth.domain.services.user_service import UserService
 
 
@@ -48,9 +48,9 @@ def mock_user_repository() -> UserRepository:
     mock_repo.update = AsyncMock(return_value=None)
     mock_repo.delete = AsyncMock(return_value=None)
     mock_repo.find_by_email = AsyncMock(return_value=None)
-    mock_repo.find_by_username = AsyncMock(return_value=None)
+    mock_repo.find_by_user_name = AsyncMock(return_value=None)
     mock_repo.exists_by_email = AsyncMock(return_value=False)
-    mock_repo.exists_by_username = AsyncMock(return_value=False)
+    mock_repo.exists_by_user_name = AsyncMock(return_value=False)
 
     return mock_repo
 
@@ -121,7 +121,7 @@ def sample_user() -> UserEntity:
     """Sample user entity for testing"""
     return UserEntity(
         id=uuid4(),
-        username="testuser",
+        user_name="testuser",
         display_name="Test User",
         email="test@example.com",
         password_hash="$2b$12$abcdefghijklmnopqrstuvwxyz123456789012345678901234",
@@ -151,7 +151,7 @@ def admin_user() -> UserEntity:
     """Sample admin user entity for testing"""
     return UserEntity(
         id=uuid4(),
-        username="adminuser",
+        user_name="adminuser",
         display_name="Admin User",
         email="admin@example.com",
         password_hash="hashed_password_60_chars_12345678901234567890123456789012",

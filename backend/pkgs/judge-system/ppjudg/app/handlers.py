@@ -33,9 +33,7 @@ class CoreDomainEventHandler:
     @inject
     def __init__(
         self,
-        submission_use_case: SubmissionUseCase = Provide[
-            JudgeContainer.submission_use_case
-        ],
+        submission_use_case: SubmissionUseCase = Provide[JudgeContainer.submission_use_case],
         event_bus: EventBus = Provide[JudgeContainer.event_bus_instance],
     ):
         self.submission_use_case = submission_use_case
@@ -96,20 +94,12 @@ class CoreDomainEventHandler:
             logger.info(f"Handling problem updated: {problem_id}")
 
             # テストケースが更新された場合は再ジャッジを検討
-            if (
-                "judge_cases" in changes
-                or "time_limit" in changes
-                or "memory_limit" in changes
-            ):
-                logger.info(
-                    f"Problem {problem_id} judge configuration changed, considering rejudge"
-                )
+            if "judge_cases" in changes or "time_limit" in changes or "memory_limit" in changes:
+                logger.info(f"Problem {problem_id} judge configuration changed, considering rejudge")
 
                 # 管理者による明示的な再ジャッジ指示がある場合のみ実行
                 if changes.get("force_rejudge", False):
-                    await self._rejudge_problem_submissions(
-                        problem_id, "Problem configuration updated"
-                    )
+                    await self._rejudge_problem_submissions(problem_id, "Problem configuration updated")
 
         except Exception as e:
             logger.error(f"Failed to handle problem updated event: {e}")
@@ -120,15 +110,11 @@ class CoreDomainEventHandler:
             problem_id = event.data["problem_id"]
             judge_case_id = event.data["judge_case_id"]
 
-            logger.info(
-                f"Handling judge case updated: {judge_case_id} for problem {problem_id}"
-            )
+            logger.info(f"Handling judge case updated: {judge_case_id} for problem {problem_id}")
 
             # ジャッジケース更新時の処理
             # 通常は管理者の判断で再ジャッジを実行
-            logger.debug(
-                f"Judge case {judge_case_id} updated, manual rejudge may be required"
-            )
+            logger.debug(f"Judge case {judge_case_id} updated, manual rejudge may be required")
 
         except Exception as e:
             logger.error(f"Failed to handle judge case updated event: {e}")
@@ -137,9 +123,9 @@ class CoreDomainEventHandler:
         """ユーザー登録イベントの処理"""
         try:
             user_id = event.data["user_id"]
-            username = event.data["username"]
+            user_name = event.data["user_name"]
 
-            logger.info(f"Handling user registered: {user_id} ({username})")
+            logger.info(f"Handling user registered: {user_id} ({user_name})")
 
             # ジャッジシステム側でのユーザー関連初期化があれば実行
             # 今のところ特別な処理は不要
@@ -167,9 +153,7 @@ class JudgeSystemEventHandler:
     @inject
     def __init__(
         self,
-        worker_use_case: JudgeWorkerUseCase = Provide[
-            JudgeContainer.judge_worker_use_case
-        ],
+        worker_use_case: JudgeWorkerUseCase = Provide[JudgeContainer.judge_worker_use_case],
         event_bus: EventBus = Provide[JudgeContainer.event_bus_instance],
     ):
         self.worker_use_case = worker_use_case
@@ -185,9 +169,7 @@ class JudgeSystemEventHandler:
             source_domain=DomainType.JUDGE,
         )
 
-        self.event_bus.subscribe(
-            "judge.started", self.handle_judge_started, source_domain=DomainType.JUDGE
-        )
+        self.event_bus.subscribe("judge.started", self.handle_judge_started, source_domain=DomainType.JUDGE)
 
         self.event_bus.subscribe(
             "judge.completed",
@@ -195,9 +177,7 @@ class JudgeSystemEventHandler:
             source_domain=DomainType.JUDGE,
         )
 
-        self.event_bus.subscribe(
-            "judge.error", self.handle_judge_error, source_domain=DomainType.JUDGE
-        )
+        self.event_bus.subscribe("judge.error", self.handle_judge_error, source_domain=DomainType.JUDGE)
 
     async def handle_submission_created(self, event: SubmissionCreatedEvent):
         """提出作成イベントの処理"""
@@ -238,9 +218,7 @@ class JudgeSystemEventHandler:
             result = event.data["result"]
             score = event.data.get("score")
 
-            logger.info(
-                f"Judge completed: {judge_id} for submission {submission_id} - Result: {result}"
-            )
+            logger.info(f"Judge completed: {judge_id} for submission {submission_id} - Result: {result}")
 
             # ジャッジ完了時の追加処理
             # 例: 統計情報の更新、ランキングの更新、通知送信など
@@ -261,9 +239,7 @@ class JudgeSystemEventHandler:
             submission_id = event.data["submission_id"]
             error = event.data["error"]
 
-            logger.error(
-                f"Judge error: {judge_id} for submission {submission_id} - Error: {error}"
-            )
+            logger.error(f"Judge error: {judge_id} for submission {submission_id} - Error: {error}")
 
             # エラー時の処理
             # 例: 管理者通知、自動リトライ、エラー統計の更新など
@@ -290,9 +266,7 @@ class JudgeSystemEventHandler:
         except Exception as e:
             logger.error(f"Failed to update contest standings: {e}")
 
-    async def _update_user_statistics(
-        self, user_id: str, result: str, score: float | None
-    ):
+    async def _update_user_statistics(self, user_id: str, result: str, score: float | None):
         """ユーザー統計の更新"""
         try:
             # ユーザー統計更新のプレースホルダー
@@ -326,9 +300,7 @@ class JudgeSystemEventHandler:
         error_lower = error.lower()
         return any(keyword in error_lower for keyword in retryable_keywords)
 
-    async def _notify_administrators(
-        self, judge_id: str, submission_id: str, error: str
-    ):
+    async def _notify_administrators(self, judge_id: str, submission_id: str, error: str):
         """管理者に通知"""
         try:
             # 管理者通知機能のプレースホルダー
@@ -343,9 +315,7 @@ class JudgeSystemEventHandler:
         """リトライをスケジュール"""
         try:
             # リトライ機能のプレースホルダー
-            logger.info(
-                f"Scheduling retry for submission {submission_id} due to: {error}"
-            )
+            logger.info(f"Scheduling retry for submission {submission_id} due to: {error}")
 
         except Exception as e:
             logger.error(f"Failed to schedule retry: {e}")

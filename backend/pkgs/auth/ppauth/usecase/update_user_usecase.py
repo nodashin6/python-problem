@@ -18,7 +18,7 @@ class UpdateUserCommand(IUseCaseCommand):
     """Command for updating a user"""
 
     user_id: UUID
-    username: str | None = None
+    user_name: str | None = None
     display_name: str | None = None
     email: str | None = None
     password: str | None = None  # 新しいパスワード (平文)
@@ -31,7 +31,7 @@ class UpdateUserResult(IUseCaseResult):
     """Result for updating a user"""
 
     user_id: UUID
-    username: str
+    user_name: str
     display_name: str
     email: str
     avatar_url: str | None = None
@@ -73,17 +73,17 @@ class UpdateUserUseCase(IUseCase[UpdateUserCommand, UpdateUserResult]):
 
     async def _update_user_fields(self, user: UserEntity, command: UpdateUserCommand) -> None:
         """Update user fields based on command"""
-        await self._update_username(user, command.username)
+        await self._update_user_name(user, command.user_name)
         await self._update_email(user, command.email)
         self._update_simple_fields(user, command)
 
-    async def _update_username(self, user: UserEntity, new_username: str | None) -> None:
-        """Update username if provided and available"""
-        if new_username is not None:
-            if not await self.user_service.is_username_available(new_username):
-                if user.username != new_username:  # 同じユーザー名の場合は許可
-                    raise UseCaseExecutionError("Username is already taken")
-            user.username = new_username
+    async def _update_user_name(self, user: UserEntity, new_user_name: str | None) -> None:
+        """Update user_name if provided and available"""
+        if new_user_name is not None:
+            if not await self.user_service.is_user_name_available(new_user_name):
+                if user.user_name != new_user_name:  # 同じユーザー名の場合は許可
+                    raise UseCaseExecutionError("user_name is already taken")
+            user.user_name = new_user_name
 
     async def _update_email(self, user: UserEntity, new_email: str | None) -> None:
         """Update email if provided and available"""
@@ -114,7 +114,7 @@ class UpdateUserUseCase(IUseCase[UpdateUserCommand, UpdateUserResult]):
         """Create the result from updated user entity"""
         return UpdateUserResult(
             user_id=updated_user.id,
-            username=updated_user.username,
+            user_name=updated_user.user_name,
             display_name=updated_user.display_name,
             email=updated_user.email,
             avatar_url=updated_user.avatar_url,

@@ -4,7 +4,7 @@
 -- Users (ユーザープロファイル) - 独立したユーザー管理
 CREATE TABLE IF NOT EXISTS public.users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(50) UNIQUE NOT NULL,
+    user_name VARCHAR(50) UNIQUE NOT NULL,
     display_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255),
@@ -38,7 +38,7 @@ ADD
 -- Performance
 -- =====================================================
 -- Users indexes
-CREATE INDEX IF NOT EXISTS idx_users_username ON public.users(username);
+CREATE INDEX IF NOT EXISTS idx_users_user_name ON public.users(user_name);
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
 

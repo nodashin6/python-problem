@@ -18,7 +18,7 @@ from ..domain.services.user_service import UserService
 class CreateUserCommand(IUseCaseCommand):
     """Command for creating a user"""
 
-    username: str
+    user_name: str
     display_name: str
     email: str
     password: str
@@ -31,7 +31,7 @@ class CreateUserResult(IUseCaseResult):
     """Result for creating a user"""
 
     user_id: UUID
-    username: str
+    user_name: str
     display_name: str
     email: str
     avatar_url: str | None = None
@@ -51,7 +51,7 @@ class CreateUserUseCase(IUseCase[CreateUserCommand, CreateUserResult]):
             # Create user through domain service
             user = await self.user_service.register_user(
                 email=command.email,
-                username=command.username,
+                user_name=command.user_name,
                 display_name=command.display_name,
                 password=command.password,
                 avatar_url=command.avatar_url,
@@ -61,7 +61,7 @@ class CreateUserUseCase(IUseCase[CreateUserCommand, CreateUserResult]):
 
             return CreateUserResult(
                 user_id=user.id,
-                username=user.username,
+                user_name=user.user_name,
                 display_name=user.display_name,
                 email=user.email,
                 avatar_url=user.avatar_url,

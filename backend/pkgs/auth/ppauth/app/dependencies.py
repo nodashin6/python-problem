@@ -7,7 +7,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ..domain.enums import UserRole
 from ..domain.models.user import User
-from ..domain.services.auth_service import AuthenticationService
+from ..domain.helpers.authentificator.authentificator import AuthenticationService
 from ..domain.services.user_service import UserService
 from ..usecase.create_user_usecase import CreateUserUseCase
 from ..usecase.delete_user_usecase import DeleteUserUseCase

@@ -6,20 +6,7 @@ from pydddi import IReadAggregateRepository, IReadAggregateSchema
 
 from ..enums import Permission, UserRole
 from ..models.user import User
-
-
-class ReadAggregateUserSchema(IReadAggregateSchema):
-    """Schema for reading user aggregate data"""
-
-    id: UUID
-    username: str
-    display_name: str
-    email: str
-    avatar_url: str | None = None
-    bio: str | None = None
-    is_active: bool
-    role: UserRole  # Single primary role
-    permissions: list[Permission]  # Derived from role
+from ..schemas.user_schemas import ReadAggregateUserSchema
 
 
 class UserAggregateReadRepository(IReadAggregateRepository[User, ReadAggregateUserSchema]):
@@ -30,8 +17,8 @@ class UserAggregateReadRepository(IReadAggregateRepository[User, ReadAggregateUs
         """Find user aggregate by email"""
 
     @abstractmethod
-    async def read_by_username(self, username: str) -> User | None:
-        """Find user aggregate by username"""
+    async def read_by_user_name(self, user_name: str) -> User | None:
+        """Find user aggregate by user_name"""
 
     @abstractmethod
     async def list_active_users(self, limit: int | None = None, offset: int | None = None) -> list[User]:
@@ -42,7 +29,7 @@ class UserAggregateReadRepository(IReadAggregateRepository[User, ReadAggregateUs
         return User(
             id=schema.id,
             email=schema.email,
-            username=schema.username,
+            user_name=schema.user_name,
             display_name=schema.display_name,
             role=schema.role,
             permissions=schema.permissions,

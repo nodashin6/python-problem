@@ -5,10 +5,11 @@ User aggregate read repository implementation using Supabase
 from typing import Any
 from uuid import UUID
 
-from ppcore.infrastructure.supabase.repository import SupabaseRepository
 from pydantic import UUID4
-from src.utils import get_logger
 from supabase import Client
+
+from ppcore.infrastructure.supabase.repository import SupabaseRepository
+from src.utils import get_logger
 
 from ....domain.enums import ROLE_PERMISSIONS, UserRole
 from ....domain.models.user import User
@@ -80,13 +81,13 @@ class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepos
             logger.error(f"Failed to find user by email {email}: {e}")
             return None
 
-    async def read_by_username(self, username: str) -> User | None:
-        """Find user aggregate by username"""
+    async def read_by_user_name(self, user_name: str) -> User | None:
+        """Find user aggregate by user_name"""
         try:
             result = (
                 self.client.table(self.users_table)
                 .select("*, user_roles!inner(role)")
-                .eq("username", username)
+                .eq("user_name", user_name)
                 .eq("is_active", True)
                 .limit(1)
                 .execute()
@@ -99,12 +100,10 @@ class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepos
             return self._schema_to_model(user_data)
 
         except Exception as e:
-            logger.error(f"Failed to find user by username {username}: {e}")
+            logger.error(f"Failed to find user by user_name {user_name}: {e}")
             return None
 
-    async def list_active_users(
-        self, limit: int | None = None, offset: int | None = None
-    ) -> list[User]:
+    async def list_active_users(self, limit: int | None = None, offset: int | None = None) -> list[User]:
         """List active user aggregates"""
         try:
             query = (
@@ -132,9 +131,7 @@ class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepos
             logger.error(f"Failed to list active users: {e}")
             return []
 
-    async def select(
-        self, limit: int | None = None, offset: int | None = None, **filters
-    ) -> list[User]:
+    async def select(self, limit: int | None = None, offset: int | None = None, **filters) -> list[User]:
         """List user aggregates with optional pagination and filtering"""
         try:
             query = (
@@ -166,9 +163,7 @@ class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepos
             logger.error(f"Failed to list users: {e}")
             return []
 
-    async def _read_user_with_role(
-        self, user_id: UUID4
-    ) -> ReadAggregateUserSchema | None:
+    async def _read_user_with_role(self, user_id: UUID4) -> ReadAggregateUserSchema | None:
         """Get user with role data"""
         try:
             result = (
@@ -206,7 +201,7 @@ class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepos
 
         return ReadAggregateUserSchema(
             id=UUID(row["id"]),
-            username=row["username"],
+            user_name=row["user_name"],
             display_name=row["display_name"],
             email=row["email"],
             avatar_url=row.get("avatar_url"),
@@ -221,7 +216,7 @@ class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepos
         return User(
             id=schema.id,
             email=schema.email,
-            username=schema.username,
+            user_name=schema.user_name,
             display_name=schema.display_name,
             role=schema.role,
             permissions=schema.permissions,

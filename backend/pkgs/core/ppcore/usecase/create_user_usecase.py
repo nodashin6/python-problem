@@ -17,14 +17,14 @@ class CreateUserCommand:
 
     def __init__(
         self,
-        username: str,
+        user_name: str,
         display_name: str,
         email: str,
         password: str,
         avatar_url: str | None = None,
         bio: str | None = None,
     ):
-        self.username = username
+        self.user_name = user_name
         self.display_name = display_name
         self.email = email
         self.password = password
@@ -53,13 +53,13 @@ class CreateUserUseCase(IUseCase[CreateUserCommand, CreateUserResult]):
         try:
             # Validate input
             validation_errors = ValidationHelper.validate_user_input(
-                command.username, command.email, command.password
+                command.user_name, command.email, command.password
             )
             if validation_errors:
                 return CreateUserResult(None, validation_errors)
 
             # Check domain constraints
-            domain_errors = await self.user_service.validate_user_data(command.username, command.email)
+            domain_errors = await self.user_service.validate_user_data(command.user_name, command.email)
             if domain_errors:
                 return CreateUserResult(None, domain_errors)
 
@@ -68,7 +68,7 @@ class CreateUserUseCase(IUseCase[CreateUserCommand, CreateUserResult]):
 
             # Create user entity
             user_entity = UserEntity(
-                username=command.username,
+                user_name=command.user_name,
                 display_name=command.display_name,
                 email=command.email,
                 password_hash=password_hash,

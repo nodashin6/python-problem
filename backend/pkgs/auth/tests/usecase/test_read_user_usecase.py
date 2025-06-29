@@ -49,7 +49,7 @@ class TestReadUserByIdUseCase:
         # Assert
         assert isinstance(result, UserResult)
         assert result.user.id == user_id
-        assert result.user.username == sample_user.username
+        assert result.user.user_name == sample_user.user_name
         assert result.user.display_name == sample_user.display_name
         assert result.user.email == sample_user.email
         assert result.user.avatar_url == sample_user.avatar_url
@@ -93,7 +93,7 @@ class TestReadUserByIdUseCase:
         # Assert
         assert isinstance(result, UserResult)
         assert result.user.id == user_id
-        assert result.user.username == sample_user.username
+        assert result.user.user_name == sample_user.user_name
         assert result.user.display_name == sample_user.display_name
         assert result.user.email == sample_user.email
         assert result.user.avatar_url == sample_user.avatar_url
@@ -124,7 +124,7 @@ class TestReadUserByEmailUseCase:
         # Assert
         assert isinstance(result, UserResult)
         assert result.user.email == email
-        assert result.user.username == sample_user.username
+        assert result.user.user_name == sample_user.user_name
 
         # Verify service calls
         user_service.user_repo.find_by_email.assert_called_once_with(email)

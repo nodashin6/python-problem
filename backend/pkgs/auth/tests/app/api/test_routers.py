@@ -44,7 +44,7 @@ def sample_user_model(sample_user):
     """Sample user model for testing"""
     return User(
         id=sample_user.id,
-        username=sample_user.username,
+        user_name=sample_user.user_name,
         display_name=sample_user.display_name,
         email=sample_user.email,
         role=UserRole.USER,
@@ -61,7 +61,7 @@ def admin_user_model(admin_user):
     """Sample admin user model for testing"""
     return User(
         id=admin_user.id,
-        username=admin_user.username,
+        user_name=admin_user.user_name,
         display_name=admin_user.display_name,
         email=admin_user.email,
         role=UserRole.ADMIN,
@@ -136,7 +136,7 @@ class TestAuthenticationEndpoints:
         user_id = uuid4()
         mock_result = CreateUserResult(
             user_id=user_id,
-            username="newuser",
+            user_name="newuser",
             display_name="New User",
             email="new@example.com",
             avatar_url=None,
@@ -155,7 +155,7 @@ class TestAuthenticationEndpoints:
             response = client.post(
                 "/auth/register",
                 json={
-                    "username": "newuser",
+                    "user_name": "newuser",
                     "display_name": "New User",
                     "email": "new@example.com",
                     "password": "password123",
@@ -168,7 +168,7 @@ class TestAuthenticationEndpoints:
         # Assert
         assert response.status_code == 200
         data = response.json()
-        assert data["username"] == "newuser"
+        assert data["user_name"] == "newuser"
         assert data["email"] == "new@example.com"
 
 
@@ -191,7 +191,7 @@ class TestUserManagementEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == str(sample_user_model.id)
-        assert data["username"] == sample_user_model.username
+        assert data["user_name"] == sample_user_model.user_name
 
     def test_get_user_by_id_admin_access(self, app, admin_user_model, sample_user):
         """Test getting user by ID with admin access"""
@@ -222,7 +222,7 @@ class TestUserManagementEndpoints:
         # Setup
         mock_result = UpdateUserResult(
             user_id=sample_user_model.id,
-            username="updated_user",
+            user_name="updated_user",
             display_name="Updated User",
             email="updated@example.com",
             avatar_url=None,
@@ -241,7 +241,7 @@ class TestUserManagementEndpoints:
         with TestClient(app) as client:
             response = client.put(
                 f"/auth/users/{sample_user_model.id}",
-                json={"username": "updated_user", "display_name": "Updated User", "bio": "Updated bio"},
+                json={"user_name": "updated_user", "display_name": "Updated User", "bio": "Updated bio"},
             )
 
         # Clear overrides
@@ -250,7 +250,7 @@ class TestUserManagementEndpoints:
         # Assert
         assert response.status_code == 200
         data = response.json()
-        assert data["username"] == "updated_user"
+        assert data["user_name"] == "updated_user"
 
     def test_delete_user_admin_only(self, app, admin_user_model):
         """Test user deletion by admin"""
@@ -288,7 +288,7 @@ class TestAdminEndpoints:
         user_id = uuid4()
         mock_result = CreateUserResult(
             user_id=user_id,
-            username="admin_created_user",
+            user_name="admin_created_user",
             display_name="Admin Created User",
             email="admin_created@example.com",
             avatar_url=None,
@@ -309,7 +309,7 @@ class TestAdminEndpoints:
             response = client.post(
                 "/auth/admin/users?role=user",  # Use lowercase enum value
                 json={
-                    "username": "admin_created_user",
+                    "user_name": "admin_created_user",
                     "display_name": "Admin Created User",
                     "email": "admin_created@example.com",
                     "password": "password123",
@@ -322,7 +322,7 @@ class TestAdminEndpoints:
         # Assert
         assert response.status_code == 200
         data = response.json()
-        assert data["username"] == "admin_created_user"
+        assert data["user_name"] == "admin_created_user"
 
     def test_get_all_users_success(self, app, admin_user_model):
         """Test getting all users list"""

@@ -15,7 +15,7 @@ from ppauth.app.dependencies import (
 )
 from ppauth.domain.enums import Permission, UserRole
 from ppauth.domain.models.user import User
-from ppauth.domain.services.auth_service import AuthenticationService
+from backend.pkgs.auth.ppauth.domain.helpers.authentificator.authentificator import AuthenticationService
 from ppauth.domain.services.user_service import UserService
 from ppauth.usecase.create_user_usecase import CreateUserUseCase
 from ppauth.usecase.delete_user_usecase import DeleteUserUseCase
@@ -71,7 +71,7 @@ class TestRoleBasedDependencies:
         # Setup - create user with admin role
         user = User(
             id=uuid4(),
-            username="adminuser",
+            user_name="adminuser",
             display_name="Admin User",
             email="admin@example.com",
             role=UserRole.ADMIN,
@@ -93,7 +93,7 @@ class TestRoleBasedDependencies:
         # Setup - create user with regular role
         user = User(
             id=uuid4(),
-            username="regularuser",
+            user_name="regularuser",
             display_name="Regular User",
             email="user@example.com",
             role=UserRole.USER,
@@ -115,7 +115,7 @@ class TestRoleBasedDependencies:
         # Setup - create user with admin role
         user = User(
             id=uuid4(),
-            username="adminuser",
+            user_name="adminuser",
             display_name="Admin User",
             email="admin@example.com",
             role=UserRole.ADMIN,
@@ -137,7 +137,7 @@ class TestRoleBasedDependencies:
         # Setup - create user with moderator role
         user = User(
             id=uuid4(),
-            username="moderatoruser",
+            user_name="moderatoruser",
             display_name="Moderator User",
             email="moderator@example.com",
             role=UserRole.MODERATOR,
@@ -159,7 +159,7 @@ class TestRoleBasedDependencies:
         # Setup - create user with regular role
         user = User(
             id=uuid4(),
-            username="regularuser",
+            user_name="regularuser",
             display_name="Regular User",
             email="user@example.com",
             role=UserRole.USER,
@@ -185,7 +185,7 @@ class TestUserAccountStatus:
         # Setup
         inactive_user = User(
             id=uuid4(),
-            username="inactiveuser",
+            user_name="inactiveuser",
             display_name="Inactive User",
             email="inactive@example.com",
             role=UserRole.USER,

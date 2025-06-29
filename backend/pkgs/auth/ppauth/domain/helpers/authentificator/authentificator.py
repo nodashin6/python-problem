@@ -4,6 +4,7 @@ Authentication and Authorization components
 """
 
 import hashlib
+import logging
 import secrets
 from datetime import datetime, timedelta
 from typing import Any, Optional
@@ -16,93 +17,27 @@ from pydddi import IDomainService
 from src.const import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET_KEY
 from src.utils.logging import get_logger
 
-from ..enums import ROLE_PERMISSIONS, Permission, UserRole
-from ..models.user import User
-
-logger = get_logger(__name__)
-
-
-class PasswordManager:
-    """パスワード管理"""
-
-    @staticmethod
-    def hash_password(password: str) -> str:
-        """パスワードをハッシュ化"""
-        salt = secrets.token_hex(32)
-        pwdhash = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000)
-        return salt + pwdhash.hex()
-
-    @staticmethod
-    def verify_password(password: str, hashed: str) -> bool:
-        """パスワードを検証"""
-        salt = hashed[:64]
-        stored_hash = hashed[64:]
-        pwdhash = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000)
-        return pwdhash.hex() == stored_hash
+from ...enums import ROLE_PERMISSIONS, Permission, UserRole
+from ...models.user import User
+from .password_helper import PasswordManager
+from .token_helper import JWTManager
 
 
-class JWTManager:
-    """JWT管理"""
-
-    def __init__(self, secret_key: str = JWT_SECRET_KEY, algorithm: str = JWT_ALGORITHM):
-        self.secret_key = secret_key
-        self.algorithm = algorithm
-
-    def create_token(self, user: User, expires_delta: timedelta | None = None) -> str:
-        """JWTトークンを作成"""
-        try:
-            if expires_delta is None:
-                expires_delta = timedelta(minutes=JWT_EXPIRE_MINUTES)
-            payload = user.to_jwt_claims(expires_delta)
-            token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
-            logger.debug(f"JWT token created for user: {user.id}")
-            return token
-        except Exception as e:
-            logger.error(f"Failed to create JWT token: {e}")
-            raise
-
-    def verify_token(self, token: str) -> User | None:
-        """JWTトークンを検証"""
-        try:
-            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
-            user = User.from_jwt_claims(payload)
-
-            # 有効期限チェック
-            if user.exp and datetime.now() > user.exp:
-                logger.warning(f"Expired token for user: {user.id}")
-                return None
-
-            return user
-        except jwt.ExpiredSignatureError:
-            logger.warning("Token has expired")
-            return None
-        except jwt.InvalidTokenError as e:
-            logger.warning(f"Invalid token: {e}")
-            return None
-        except Exception as e:
-            logger.error(f"Token verification error: {e}")
-            return None
-
-    def refresh_token(self, token: str) -> str | None:
-        """トークンをリフレッシュ"""
-        user = self.verify_token(token)
-        if not user:
-            return None
-
-        # 新しい有効期限でトークンを再作成
-        expires_delta = timedelta(minutes=JWT_EXPIRE_MINUTES)
-        return self.create_token(user, expires_delta)
-
-
-class AuthenticationService(IDomainService):
+class Authentificator(IDomainService):
     """認証サービス"""
 
-    def __init__(self, jwt_manager: JWTManager):
+    def __init__(
+        self,
+        jwt_manager: JWTManager,
+        password_manager: PasswordManager,
+        logger: logging.Logger | None = None,
+    ):
         self.jwt_manager = jwt_manager
-        self.password_manager = PasswordManager()
+        self.password_manager = password_manager
+        self.logger = logger or get_logger(__name__)
 
     def create_user(
-        self, user_id: str, email: str, username: str, display_name: str, role: UserRole
+        self, user_id: str, email: str, user_name: str, display_name: str, role: UserRole
     ) -> User:
         """ユーザーを作成"""
         # ロールから権限を取得
@@ -111,7 +46,7 @@ class AuthenticationService(IDomainService):
         return User(
             id=user_id,
             email=email,
-            username=username,
+            user_name=user_name,
             display_name=display_name,
             role=role,
             permissions=permissions,
@@ -137,19 +72,19 @@ class AuthenticationService(IDomainService):
         role = UserRole.USER  # 実装時はDBから取得
 
         if not self.password_manager.verify_password(password, stored_hash):
-            logger.warning(f"Authentication failed for email: {email}")
+            self.logger.warning(f"Authentication failed for email: {email}")
             return None
 
         # ユーザー情報を作成 (実際の実装では DB から取得)
         user = self.create_user(
             user_id="user_id_from_db",  # 実際は DB から取得
             email=email,
-            username="username_from_db",  # 実際は DB から取得
+            user_name="user_name_from_db",  # 実際は DB から取得
             display_name="display_name_from_db",  # 実際は DB から取得
             role=role,
         )
 
-        logger.info(f"User authenticated successfully: {email}")
+        self.logger.info(f"User authenticated successfully: {email}")
         return user
 
     def create_access_token(self, user: User) -> str:
@@ -159,7 +94,7 @@ class AuthenticationService(IDomainService):
     def register_user(
         self,
         email: str,
-        username: str,
+        user_name: str,
         password: str,
         role: UserRole | None = None,
     ) -> dict[str, Any]:
@@ -172,15 +107,15 @@ class AuthenticationService(IDomainService):
         # 実際の実装では DB にユーザーを保存
         user_id = f"user_{secrets.token_hex(8)}"
 
-        user = self.create_user(user_id, email, username, username, role)  # display_nameはusernameと同じ
+        user = self.create_user(user_id, email, user_name, user_name, role)  # display_nameはuser_nameと同じ
         token = self.jwt_manager.create_token(user)
 
-        logger.info(f"User registered successfully: {email}")
+        self.logger.info(f"User registered successfully: {email}")
 
         return {
             "user_id": user_id,
             "email": email,
-            "username": username,
+            "user_name": user_name,
             "token": token,
             "hashed_password": hashed_password,
         }
@@ -271,6 +206,11 @@ def require_role(role: UserRole):
 
 
 # グローバルインスタンス
-jwt_manager = JWTManager()
-auth_service = AuthenticationService(jwt_manager)
-authz_service = AuthorizationService()
+logger = get_logger(__name__)
+jwt_manager = JWTManager(logger=logger)
+password_manager = PasswordManager(logger=logger)
+auth_service = Authentificator(
+    jwt_manager=jwt_manager,
+    password_manager=password_manager,
+    logger=logger,
+)

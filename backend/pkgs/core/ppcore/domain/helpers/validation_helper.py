@@ -8,7 +8,7 @@ from typing import Final
 
 # Constants
 EMAIL_PATTERN: Final[str] = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-USERNAME_PATTERN: Final[str] = r"^[a-zA-Z0-9_]{3,30}$"
+user_name_PATTERN: Final[str] = r"^[a-zA-Z0-9_]{3,30}$"
 
 
 class ValidationHelper:
@@ -20,9 +20,9 @@ class ValidationHelper:
         return bool(re.match(EMAIL_PATTERN, email))
 
     @staticmethod
-    def is_valid_username(username: str) -> bool:
-        """Validate username format"""
-        return bool(re.match(USERNAME_PATTERN, username))
+    def is_valid_user_name(user_name: str) -> bool:
+        """Validate user_name format"""
+        return bool(re.match(user_name_PATTERN, user_name))
 
     @staticmethod
     def is_valid_password(password: str) -> bool:
@@ -30,13 +30,13 @@ class ValidationHelper:
         return len(password) >= 8
 
     @staticmethod
-    def validate_user_input(username: str, email: str, password: str) -> list[str]:
+    def validate_user_input(user_name: str, email: str, password: str) -> list[str]:
         """Validate user registration input"""
         errors = []
 
-        if not ValidationHelper.is_valid_username(username):
+        if not ValidationHelper.is_valid_user_name(user_name):
             errors.append(
-                "Username must be 3-30 characters long and contain only letters, numbers, and underscores"
+                "user_name must be 3-30 characters long and contain only letters, numbers, and underscores"
             )
 
         if not ValidationHelper.is_valid_email(email):

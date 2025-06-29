@@ -12,7 +12,14 @@ from .enums import Permission, UserRole
 from .models import User
 
 # Repositories
-from .repositories import UserAggregateReadRepository, UserRepository, UserRoleRepository
+from .repositories import UserAggregateReadRepository, UserRepository
+
+# Schemas
+from .schemas import (
+    CreateUserSchema,
+    ReadUserSchema,
+    UpdateUserSchema,
+)
 
 # Domain Services
 from .services import AuthDomainService, UserDomainService
@@ -31,6 +38,9 @@ __all__ = [
     "AuthDomainService",
     # Repositories
     "UserRepository",
-    "UserRoleRepository",
     "UserAggregateReadRepository",
+    # Schemas
+    "CreateUserSchema",
+    "UpdateUserSchema",
+    "ReadUserSchema",
 ]

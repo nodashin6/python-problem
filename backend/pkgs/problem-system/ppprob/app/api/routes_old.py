@@ -318,7 +318,7 @@ class RegisterUserRequest(BaseModel):
     """ユーザー登録リクエスト"""
 
     email: EmailStr
-    username: str
+    user_name: str
     password: str
     display_name: str = ""
     bio: str = ""
@@ -337,7 +337,7 @@ class UserResponse(BaseModel):
 
     id: str
     email: str
-    username: str
+    user_name: str
     display_name: str
     bio: str
     avatar_url: str
@@ -371,9 +371,9 @@ async def register_user(request: RegisterUserRequest):
         # Register user using application service
         result = await user_service.register_user(
             email=request.email,
-            username=request.username,
+            user_name=request.user_name,
             password=request.password,
-            display_name=request.display_name or request.username,
+            display_name=request.display_name or request.user_name,
             bio=request.bio,
             avatar_url=request.avatar_url,
         )
@@ -381,7 +381,7 @@ async def register_user(request: RegisterUserRequest):
         user_response = UserResponse(
             id=result["user"]["id"],
             email=result["user"]["email"],
-            username=result["user"]["username"],
+            user_name=result["user"]["user_name"],
             display_name=result["user"]["display_name"],
             bio=request.bio,
             avatar_url=request.avatar_url,
@@ -422,7 +422,7 @@ async def login_user(request: LoginRequest):
         user_response = UserResponse(
             id=result["user"]["id"],
             email=result["user"]["email"],
-            username=result["user"]["username"],
+            user_name=result["user"]["user_name"],
             display_name=result["user"]["display_name"],
             bio=None,  # Will be fetched from profile if needed
             avatar_url=None,  # Will be fetched from profile if needed
@@ -461,7 +461,7 @@ async def get_current_user_profile(current_user: User = Depends(get_current_user
         return UserResponse(
             id=profile_data["id"],
             email=profile_data["email"],
-            username=profile_data["username"],
+            user_name=profile_data["user_name"],
             display_name=profile_data["display_name"],
             bio=profile_data["bio"],
             avatar_url=profile_data["avatar_url"],

@@ -32,7 +32,7 @@ class TestUserUseCaseIntegration:
         """Test complete flow: create user then read it"""
         # Arrange
         create_command = CreateUserCommand(
-            username="integrationuser",
+            user_name="integrationuser",
             display_name="Integration User",
             email="integration@example.com",
             password="password123",
@@ -59,7 +59,7 @@ class TestUserUseCaseIntegration:
 
         # Assert
         assert create_result.user_id == read_result.user.id
-        assert create_result.username == read_result.user.username
+        assert create_result.user_name == read_result.user.user_name
         assert create_result.email == read_result.user.email
 
     @pytest.mark.asyncio
@@ -69,7 +69,7 @@ class TestUserUseCaseIntegration:
         """Test complete flow: create user, update it, then read it"""
         # Arrange - Create
         create_command = CreateUserCommand(
-            username="flowuser", display_name="Flow User", email="flow@example.com", password="password123"
+            user_name="flowuser", display_name="Flow User", email="flow@example.com", password="password123"
         )
 
         user_service.register_user = AsyncMock(return_value=sample_user)
@@ -77,7 +77,7 @@ class TestUserUseCaseIntegration:
         # Arrange - Update
         updated_user = UserEntity(
             id=sample_user.id,
-            username=sample_user.username,
+            user_name=sample_user.user_name,
             display_name="Updated Flow User",  # Changed
             email=sample_user.email,
             password_hash=sample_user.password_hash,
@@ -90,7 +90,7 @@ class TestUserUseCaseIntegration:
 
         user_service.user_repo.read = AsyncMock(return_value=sample_user)
         user_service.user_repo.update = AsyncMock(return_value=updated_user)
-        user_service.is_username_available = AsyncMock(return_value=True)
+        user_service.is_user_name_available = AsyncMock(return_value=True)
         user_service.is_email_available = AsyncMock(return_value=True)
 
         # Arrange - Read
@@ -131,7 +131,7 @@ class TestUserUseCaseIntegration:
         """Test complete flow: create user, soft delete it, then try to read it"""
         # Arrange - Create
         create_command = CreateUserCommand(
-            username="deleteuser",
+            user_name="deleteuser",
             display_name="Delete User",
             email="delete@example.com",
             password="password123",
@@ -142,7 +142,7 @@ class TestUserUseCaseIntegration:
         # Arrange - Delete
         deactivated_user = UserEntity(
             id=sample_user.id,
-            username=sample_user.username,
+            user_name=sample_user.user_name,
             display_name=sample_user.display_name,
             email=sample_user.email,
             password_hash=sample_user.password_hash,
@@ -218,7 +218,7 @@ class TestUserUseCaseIntegration:
         read_usecase = ReadUserByIdUseCase(user_service)
 
         # Act & Assert - Update non-existent user
-        update_command = UpdateUserCommand(user_id=non_existent_user_id, username="nonexistent")
+        update_command = UpdateUserCommand(user_id=non_existent_user_id, user_name="nonexistent")
         with pytest.raises(UseCaseExecutionError):
             await update_usecase.execute(update_command)
 

@@ -14,7 +14,7 @@ class UserEntity(BaseEntity):
     ユーザーエンティティ - データベース永続化用
     """
 
-    username: str = Field(...)
+    user_name: str = Field(...)
     display_name: str = Field(...)
     email: str = Field(...)
     password_hash: str = Field(...)

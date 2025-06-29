@@ -6,7 +6,7 @@ xxxx_use_case.py
 
 
 xxxx_use_case.py: controllerが直接使うもの
-_xxxx_use_case.py: controlelrが直接使わないもの（システムからの呼び出し）
+_xxxx_use_case.py: controlelrが直接使わないもの(システムからの呼び出し)
 
 
 ## フォルダ分け

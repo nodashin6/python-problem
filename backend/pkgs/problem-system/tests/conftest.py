@@ -29,7 +29,7 @@ def created_user(client):
             .insert(
                 {
                     "id": str(user_id),
-                    "username": "testuser",
+                    "user_name": "testuser",
                     "display_name": "Test User",
                     "email": "test@example.com",
                 }
@@ -40,7 +40,7 @@ def created_user(client):
         class DummyUser:
             def __init__(self, user_id):
                 self.id = user_id
-                self.username = "testuser"
+                self.user_name = "testuser"
                 self.display_name = "Test User"
                 self.email = "test@example.com"
 
@@ -54,7 +54,7 @@ def created_user(client):
         class DummyUser:
             def __init__(self):
                 self.id = None
-                self.username = "testuser"
+                self.user_name = "testuser"
                 self.display_name = "Test User"
                 self.email = "test@example.com"
 

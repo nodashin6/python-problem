@@ -1,6 +1,7 @@
-from src.env import EnvSettings
 from supabase import Client
 from supabase import create_client as __create_client
+
+from src.env import EnvSettings
 
 
 def create_client() -> Client:

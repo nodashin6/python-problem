@@ -85,7 +85,7 @@ class TestCoreIntegration(IntegrationTestBase):
         # ユーザーを取得
         user = await self.get_user_by_email("test.user@example.com")
         assert user is not None
-        assert user["username"] == "testuser"
+        assert user["user_name"] == "testuser"
         assert user["is_active"] is True
 
         # ユーザーロールを確認

@@ -10,6 +10,8 @@ from pydantic import UUID4
 from pydddi import IModel
 
 from ..enums import Permission, UserRole
+from ._user_profile import Profile
+from ._user_role import Role
 
 
 class User(IModel):
@@ -17,16 +19,11 @@ class User(IModel):
 
     id: UUID4
     email: str
-    username: str
+    user_name: str
     display_name: str
-    role: UserRole  # 単一ロールに変更
-    permissions: list[Permission]
-    # ユーザープロフィール関連
-    avatar_url: str | None = None
-    bio: str | None = None
-    is_active: bool = True
-    created_at: datetime | None = None
-    # JWT関連フィールド（オプション）
+    _profile: Profile | None = None  # ユーザープロフィール情報(オプション)
+    _role: Role | None = None  # ユーザーロール情報(オプション)
+    # JWT関連フィールド(オプション)
     exp: datetime | None = None
     iat: datetime | None = None
 
@@ -67,7 +64,7 @@ class User(IModel):
         return {
             "user_id": str(self.id),
             "email": self.email,
-            "username": self.username,
+            "user_name": self.user_name,
             "role": self.role.value,
             "permissions": [perm.value for perm in self.permissions],
             "exp": int(exp_time.timestamp()),
@@ -82,8 +79,8 @@ class User(IModel):
         return cls(
             id=data["user_id"],
             email=data["email"],
-            username=data["username"],
-            display_name=data.get("display_name", data["username"]),  # fallback
+            user_name=data["user_name"],
+            display_name=data.get("display_name", data["user_name"]),  # fallback
             role=UserRole(data["role"]),
             permissions=[Permission(p) for p in data["permissions"]],
             exp=datetime.fromtimestamp(data["exp"]) if data.get("exp") else None,

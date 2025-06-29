@@ -14,7 +14,7 @@ class UserEntity(IEntity):
 
     id: UUID4
     email: EmailStr
-    username: str
+    user_name: str
     password_hash: str
     display_name: str
     bio: str = Field(default="")
@@ -32,14 +32,14 @@ class UserEntity(IEntity):
             raise ValueError("Email cannot be empty")
         return value
 
-    @field_validator("username")
-    def validate_username(cls, value: str) -> str:
+    @field_validator("user_name")
+    def validate_user_name(cls, value: str) -> str:
         if not value.strip():
-            raise ValueError("Username cannot be empty")
+            raise ValueError("user_name cannot be empty")
         if len(value) < 3:
-            raise ValueError("Username must be at least 3 characters long")
+            raise ValueError("user_name must be at least 3 characters long")
         if len(value) > 50:
-            raise ValueError("Username must be at most 50 characters long")
+            raise ValueError("user_name must be at most 50 characters long")
         return value.strip()
 
     @field_validator("display_name")

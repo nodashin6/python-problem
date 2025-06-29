@@ -10,7 +10,7 @@ from pydantic import BaseModel, EmailStr
 
 from ...domain.enums import UserRole
 from ...domain.models.user import User
-from ...domain.services.auth_service import AuthenticationService
+from ...domain.helpers.authentificator.authentificator import AuthenticationService
 from ...domain.services.user_service import UserService
 from ...usecase.create_user_usecase import CreateUserCommand, CreateUserUseCase
 from ...usecase.delete_user_usecase import DeleteUserCommand, DeleteUserUseCase
@@ -43,7 +43,7 @@ class LoginRequest(BaseModel):
 
 
 class RegisterRequest(BaseModel):
-    username: str
+    user_name: str
     display_name: str
     email: EmailStr
     password: str
@@ -52,7 +52,7 @@ class RegisterRequest(BaseModel):
 
 
 class UpdateUserRequest(BaseModel):
-    username: str | None = None
+    user_name: str | None = None
     display_name: str | None = None
     email: EmailStr | None = None
     password: str | None = None
@@ -69,7 +69,7 @@ class TokenResponse(BaseModel):
 
 class UserResponse(BaseModel):
     id: str
-    username: str
+    user_name: str
     display_name: str
     email: str
     avatar_url: str | None = None
@@ -116,7 +116,7 @@ async def login(
             access_token=access_token,
             user={
                 "id": str(user.id),
-                "username": user.username,
+                "user_name": user.user_name,
                 "email": user.email,
                 "role": "USER",  # UserEntityにはroleがないのでデフォルト値を使用
             },
@@ -140,7 +140,7 @@ async def register(
     """User registration endpoint"""
     try:
         command = CreateUserCommand(
-            username=request.username,
+            user_name=request.user_name,
             display_name=request.display_name,
             email=request.email,
             password=request.password,
@@ -153,7 +153,7 @@ async def register(
 
         return UserResponse(
             id=str(result.user_id),
-            username=result.username,
+            user_name=result.user_name,
             display_name=result.display_name,
             email=result.email,
             avatar_url=result.avatar_url,
@@ -178,7 +178,7 @@ async def get_current_user_info(
     """Get current user information"""
     return UserResponse(
         id=str(current_user.id),
-        username=current_user.username,
+        user_name=current_user.user_name,
         display_name=current_user.display_name,
         email=current_user.email,
         avatar_url=current_user.avatar_url,
@@ -204,7 +204,7 @@ async def get_active_users(
         return [
             UserResponse(
                 id=str(user.id),
-                username=user.username,
+                user_name=user.user_name,
                 display_name=user.display_name,
                 email=user.email,
                 avatar_url=user.avatar_url,
@@ -244,7 +244,7 @@ async def get_user_by_id(
         user = result.user  # UserResult -> UserEntity
         return UserResponse(
             id=str(user.id),
-            username=user.username,
+            user_name=user.user_name,
             display_name=user.display_name,
             email=user.email,
             avatar_url=user.avatar_url,
@@ -287,7 +287,7 @@ async def get_users_by_role(
             users.append(
                 UserResponse(
                     id=str(user.id),
-                    username=user.username,
+                    user_name=user.user_name,
                     display_name=user.display_name,
                     email=user.email,
                     avatar_url=user.avatar_url,
@@ -328,7 +328,7 @@ async def update_user(
 
         command = UpdateUserCommand(
             user_id=user_id,
-            username=request.username,
+            user_name=request.user_name,
             display_name=request.display_name,
             email=request.email,
             password=request.password,
@@ -341,7 +341,7 @@ async def update_user(
 
         return UserResponse(
             id=str(result.user_id),
-            username=result.username,
+            user_name=result.user_name,
             display_name=result.display_name,
             email=result.email,
             avatar_url=result.avatar_url,
@@ -404,7 +404,7 @@ async def create_user_admin(
     """Create user as admin - can set any role"""
     try:
         command = CreateUserCommand(
-            username=request.username,
+            user_name=request.user_name,
             display_name=request.display_name,
             email=request.email,
             password=request.password,
@@ -417,7 +417,7 @@ async def create_user_admin(
 
         return UserResponse(
             id=str(result.user_id),
-            username=result.username,
+            user_name=result.user_name,
             display_name=result.display_name,
             email=result.email,
             avatar_url=result.avatar_url,

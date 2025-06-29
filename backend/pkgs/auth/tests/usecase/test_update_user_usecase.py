@@ -23,7 +23,7 @@ class TestUpdateUserUseCase:
         user_id = sample_user.id
         command = UpdateUserCommand(
             user_id=user_id,
-            username="updateduser",
+            user_name="updateduser",
             display_name="Updated User",
             email="updated@example.com",
             avatar_url="https://example.com/new-avatar.jpg",
@@ -33,7 +33,7 @@ class TestUpdateUserUseCase:
         # Create updated user entity
         updated_user = UserEntity(
             id=sample_user.id,
-            username=command.username,
+            user_name=command.user_name,
             display_name=command.display_name,
             email=command.email,
             password_hash=sample_user.password_hash,
@@ -47,7 +47,7 @@ class TestUpdateUserUseCase:
         # Mock repository methods
         user_service.user_repo.read = AsyncMock(return_value=sample_user)
         user_service.user_repo.update = AsyncMock(return_value=updated_user)
-        user_service.is_username_available = AsyncMock(return_value=True)
+        user_service.is_user_name_available = AsyncMock(return_value=True)
         user_service.is_email_available = AsyncMock(return_value=True)
 
         usecase = UpdateUserUseCase(user_service)
@@ -58,7 +58,7 @@ class TestUpdateUserUseCase:
         # Assert
         assert isinstance(result, UpdateUserResult)
         assert result.user_id == user_id
-        assert result.username == command.username
+        assert result.user_name == command.user_name
         assert result.display_name == command.display_name
         assert result.email == command.email
         assert result.avatar_url == command.avatar_url
@@ -78,7 +78,7 @@ class TestUpdateUserUseCase:
         # Create partially updated user
         updated_user = UserEntity(
             id=sample_user.id,
-            username=sample_user.username,  # unchanged
+            user_name=sample_user.user_name,  # unchanged
             display_name=command.display_name,  # updated
             email=sample_user.email,  # unchanged
             password_hash=sample_user.password_hash,
@@ -99,7 +99,7 @@ class TestUpdateUserUseCase:
 
         # Assert
         assert result.display_name == command.display_name
-        assert result.username == sample_user.username  # unchanged
+        assert result.user_name == sample_user.user_name  # unchanged
         assert result.email == sample_user.email  # unchanged
 
     @pytest.mark.asyncio
@@ -114,7 +114,7 @@ class TestUpdateUserUseCase:
 
         updated_user = UserEntity(
             id=sample_user.id,
-            username=sample_user.username,
+            user_name=sample_user.user_name,
             display_name=sample_user.display_name,
             email=sample_user.email,
             password_hash=new_password_hash,
@@ -143,7 +143,7 @@ class TestUpdateUserUseCase:
         """Test update when user is not found"""
         # Arrange
         user_id = uuid4()
-        command = UpdateUserCommand(user_id=user_id, username="nonexistent")
+        command = UpdateUserCommand(user_id=user_id, user_name="nonexistent")
 
         user_service.user_repo.read = AsyncMock(return_value=None)
 
@@ -156,14 +156,14 @@ class TestUpdateUserUseCase:
         assert f"User with ID {user_id} not found" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_update_user_username_taken(self, user_service: UserService, sample_user: UserEntity):
-        """Test update when new username is already taken"""
+    async def test_update_user_user_name_taken(self, user_service: UserService, sample_user: UserEntity):
+        """Test update when new user_name is already taken"""
         # Arrange
         user_id = sample_user.id
-        command = UpdateUserCommand(user_id=user_id, username="takenusernameohtheruser")
+        command = UpdateUserCommand(user_id=user_id, user_name="takenuser_nameohtheruser")
 
         user_service.user_repo.read = AsyncMock(return_value=sample_user)
-        user_service.is_username_available = AsyncMock(return_value=False)
+        user_service.is_user_name_available = AsyncMock(return_value=False)
 
         usecase = UpdateUserUseCase(user_service)
 
@@ -171,7 +171,7 @@ class TestUpdateUserUseCase:
         with pytest.raises(UseCaseExecutionError) as exc_info:
             await usecase.execute(command)
 
-        assert "Username is already taken" in str(exc_info.value)
+        assert "user_name is already taken" in str(exc_info.value)
 
     @pytest.mark.asyncio
     async def test_update_user_email_taken(self, user_service: UserService, sample_user: UserEntity):
@@ -192,20 +192,20 @@ class TestUpdateUserUseCase:
         assert "Email is already taken" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_update_user_same_username_allowed(
+    async def test_update_user_same_user_name_allowed(
         self, user_service: UserService, sample_user: UserEntity
     ):
-        """Test update with same username (should be allowed)"""
+        """Test update with same user_name (should be allowed)"""
         # Arrange
         user_id = sample_user.id
         command = UpdateUserCommand(
             user_id=user_id,
-            username=sample_user.username,  # same username
+            user_name=sample_user.user_name,  # same user_name
         )
 
         user_service.user_repo.read = AsyncMock(return_value=sample_user)
         user_service.user_repo.update = AsyncMock(return_value=sample_user)
-        user_service.is_username_available = AsyncMock(return_value=False)  # taken by others
+        user_service.is_user_name_available = AsyncMock(return_value=False)  # taken by others
 
         usecase = UpdateUserUseCase(user_service)
 
@@ -213,7 +213,7 @@ class TestUpdateUserUseCase:
         result = await usecase.execute(command)
 
         # Assert - should not raise exception
-        assert result.username == sample_user.username
+        assert result.user_name == sample_user.user_name
 
     @pytest.mark.asyncio
     async def test_update_user_deactivate(self, user_service: UserService, sample_user: UserEntity):
@@ -224,7 +224,7 @@ class TestUpdateUserUseCase:
 
         deactivated_user = UserEntity(
             id=sample_user.id,
-            username=sample_user.username,
+            user_name=sample_user.user_name,
             display_name=sample_user.display_name,
             email=sample_user.email,
             password_hash=sample_user.password_hash,

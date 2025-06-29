@@ -1,8 +1,8 @@
-from enum import Enum
+from enum import Enum, StrEnum
 
 
 # Core Domain Enums
-class UserRole(str, Enum):
+class UserRole(StrEnum):
     """ユーザーロール - SQLのuser_roles.roleと対応"""
 
     ADMIN = "admin"
