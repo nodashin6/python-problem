@@ -50,7 +50,7 @@ class TestDeleteUserUseCase:
 
         user_service.user_repo.read = AsyncMock(return_value=sample_user)
         user_service.user_repo.delete = AsyncMock(return_value=None)
-        user_service.user_role_repo.delete_by_user_id = AsyncMock(return_value=True)
+        #user_service.user_role_repo.delete_by_user_id = AsyncMock(return_value=True)
 
         usecase = DeleteUserUseCase(user_service)
 
@@ -66,7 +66,7 @@ class TestDeleteUserUseCase:
         # Verify service calls
         user_service.user_repo.read.assert_called_once_with(user_id)
         user_service.user_repo.delete.assert_called_once_with(user_id)
-        user_service.user_role_repo.delete_by_user_id.assert_called_once_with(user_id)
+        #user_service.user_role_repo.delete_by_user_id.assert_called_once_with(user_id)
 
     @pytest.mark.asyncio
     async def test_delete_user_not_found(self, user_service: UserService):

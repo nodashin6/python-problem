@@ -87,6 +87,42 @@ class Authentificator(IDomainService):
         self.logger.info(f"User authenticated successfully: {email}")
         return user
 
+    def hash_password(self, password: str) -> str:
+        """Hash a password"""
+        return self.password_manager.hash_password(password)
+
+    def verify_password(self, password: str, hashed_password: str) -> bool:
+        """Verify a password against its hash"""
+        return self.password_manager.verify_password(password, hashed_password)
+
+    def get_user_from_token(self, token: str) -> User | None:
+        """Get user from JWT token"""
+        try:
+            payload = self.jwt_manager.verify_token(token)
+            if not payload:
+                return None
+
+            user_id = payload.get("user_id")
+            email = payload.get("email")
+
+            if not user_id or not email:
+                return None
+
+            # 実際の実装では UserService や UserRepository を使用してDBから取得
+            # 今回は簡略化してトークンの情報から User を作成
+            return User(
+                id=user_id,
+                email=email,
+                user_name=payload.get("user_name", ""),
+                display_name=payload.get("display_name", ""),
+                role=UserRole(payload.get("role", UserRole.USER.value)),
+                permissions=[],  # TODO: 権限を適切に設定
+            )
+
+        except Exception as e:
+            self.logger.warning(f"Failed to get user from token: {e}")
+            return None
+
     def create_access_token(self, user: User) -> str:
         """アクセストークンを作成"""
         return self.jwt_manager.create_token(user)

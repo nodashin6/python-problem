@@ -4,11 +4,15 @@ Authentication and Authorization components
 """
 
 import hashlib
+import logging
 import secrets
 
 
 class PasswordManager:
     """パスワード管理"""
+
+    def __init__(self, logger: logging.Logger | None = None):
+        self.logger = logger
 
     @staticmethod
     def hash_password(password: str) -> str:

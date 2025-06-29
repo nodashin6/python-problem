@@ -8,7 +8,7 @@ from uuid import uuid4
 import pytest
 from pydddi import UseCaseExecutionError
 
-from ppauth.domain.entities import UserEntity, UserRoleEntity
+from ppauth.domain.entities import RoleEntity, UserEntity
 from ppauth.domain.enums import UserRole
 from ppauth.domain.services.user_service import UserService
 from ppauth.usecase.create_user_usecase import CreateUserCommand, CreateUserUseCase
@@ -27,7 +27,7 @@ class TestUserUseCaseIntegration:
 
     @pytest.mark.asyncio
     async def test_create_and_read_user_flow(
-        self, user_service: UserService, sample_user: UserEntity, sample_user_role: UserRoleEntity
+        self, user_service: UserService, sample_user: UserEntity, sample_role: RoleEntity
     ):
         """Test complete flow: create user then read it"""
         # Arrange
@@ -43,9 +43,10 @@ class TestUserUseCaseIntegration:
         user_service.register_user = AsyncMock(return_value=sample_user)
 
         # Mock for reading
-        sample_user_role.user_id = sample_user.id
-        user_service.user_repo.read = AsyncMock(return_value=sample_user)
-        user_service.user_role_repo.find_by_user_id = AsyncMock(return_value=[sample_user_role])
+        sample_role.user_id = sample_user.id
+        user_service.user_repo.find_by_id_with_role = AsyncMock(return_value=sample_user)
+        # Note: user_role_repo doesn't exist in current implementation
+        # Role information is handled through user_repo
 
         create_usecase = CreateUserUseCase(user_service)
         read_usecase = ReadUserByIdUseCase(user_service)
@@ -64,7 +65,7 @@ class TestUserUseCaseIntegration:
 
     @pytest.mark.asyncio
     async def test_create_update_read_user_flow(
-        self, user_service: UserService, sample_user: UserEntity, sample_user_role: UserRoleEntity
+        self, user_service: UserService, sample_user: UserEntity, sample_role: RoleEntity
     ):
         """Test complete flow: create user, update it, then read it"""
         # Arrange - Create
@@ -94,8 +95,8 @@ class TestUserUseCaseIntegration:
         user_service.is_email_available = AsyncMock(return_value=True)
 
         # Arrange - Read
-        sample_user_role.user_id = sample_user.id
-        user_service.user_role_repo.find_by_user_id = AsyncMock(return_value=[sample_user_role])
+        sample_role.user_id = sample_user.id
+        # user_service.user_role_repo.find_by_user_id = AsyncMock(return_value=[sample_role])
 
         create_usecase = CreateUserUseCase(user_service)
         update_usecase = UpdateUserUseCase(user_service)
@@ -112,8 +113,8 @@ class TestUserUseCaseIntegration:
         )
         update_result = await update_usecase.execute(update_command)
 
-        # Mock updated user for read
-        user_service.user_repo.read = AsyncMock(return_value=updated_user)
+        # Mock updated user for read - use the correct method that ReadUserByIdUseCase calls
+        user_service.user_repo.find_by_id_with_role = AsyncMock(return_value=updated_user)
 
         # Act - Read
         read_command = ReadUserByIdCommand(user_id=create_result.user_id)
@@ -171,9 +172,9 @@ class TestUserUseCaseIntegration:
         assert delete_result.deleted is True
         assert delete_result.soft_deleted is True
 
-        # Mock deactivated user for read
-        user_service.user_repo.read = AsyncMock(return_value=deactivated_user)
-        user_service.user_role_repo.find_by_user_id = AsyncMock(return_value=[])
+        # Mock deactivated user for read - use the correct method that ReadUserByIdUseCase calls
+        user_service.user_repo.find_by_id_with_role = AsyncMock(return_value=deactivated_user)
+        # user_service.user_role_repo.find_by_user_id = AsyncMock(return_value=[])
 
         # Act - Read (should still work but user is inactive)
         read_command = ReadUserByIdCommand(user_id=create_result.user_id)
@@ -185,15 +186,15 @@ class TestUserUseCaseIntegration:
 
     @pytest.mark.asyncio
     async def test_find_user_by_email_integration(
-        self, user_service: UserService, sample_user: UserEntity, sample_user_role: UserRoleEntity
+        self, user_service: UserService, sample_user: UserEntity, sample_role: RoleEntity
     ):
         """Test finding user by email integration"""
         # Arrange
         email = sample_user.email
-        sample_user_role.user_id = sample_user.id
+        sample_role.user_id = sample_user.id
 
         user_service.user_repo.find_by_email = AsyncMock(return_value=sample_user)
-        user_service.user_role_repo.find_by_user_id = AsyncMock(return_value=[sample_user_role])
+        # user_service.user_role_repo.find_by_user_id = AsyncMock(return_value=[sample_role])
 
         read_usecase = ReadUserByEmailUseCase(user_service)
 

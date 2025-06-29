@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import UUID4, Field
+from pydantic import UUID4, ConfigDict, Field
 from pydantic import BaseModel as PydanticBaseModel
 from pydddi import IModel
 
@@ -23,10 +23,16 @@ class BaseModel(IModel, ABC):
     created_at: datetime = Field(...)
     updated_at: datetime = Field(...)
 
-    class Config:
-        arbitrary_types_allowed = True
-        use_enum_values = True
-        validate_assignment = True
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        use_enum_values=True,
+        validate_assignment=True,
+    )
+
+    # class Config:
+    #     arbitrary_types_allowed = True
+    #     use_enum_values = True
+    #     validate_assignment = True
 
     def get_id(self) -> UUID4:
         """Get model ID"""
@@ -40,6 +46,11 @@ class BaseModel(IModel, ABC):
 class ValueObject(PydanticBaseModel):
     """Value object base class"""
 
-    class Config:
-        frozen = True
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(
+        frozen=True,
+        arbitrary_types_allowed=True,
+    )
+
+    # class Config:
+    #     frozen = True
+    #     arbitrary_types_allowed = True

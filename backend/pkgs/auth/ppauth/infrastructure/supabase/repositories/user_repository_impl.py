@@ -3,15 +3,14 @@ User repository implementation using Supabase
 Unified User + UserRole management
 """
 
-import builtins
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 from uuid import UUID
 
-from supabase import Client
-
-from ppcore.infrastructure.supabase.repository import SupabaseRepository
+from ppcore.domain.repositories import SupabaseRepository
+from ppcore.infrastructure.supabase.repositories import SupabaseRepositoryImpl
 from src.utils import get_logger
+from supabase import Client
 
 from ....domain.entities.user import RoleEntity, UserEntity
 from ....domain.repositories.user_repository import UserRepository
@@ -20,18 +19,7 @@ from ....domain.schemas.user_schemas import CreateUserSchema, ReadUserSchema, Up
 logger = get_logger(__name__)
 
 
-"""
-User repository implementation using Supabase
-Unified User + UserRole management
-"""
-
-
-from src.utils import get_logger
-
-logger = get_logger(__name__)
-
-
-class UserRepositoryImpl(UserRepository, SupabaseRepository):
+class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
     """User repository implementation with Supabase - Unified User + UserRole management"""
 
     def __init__(self, client: Client):
@@ -137,10 +125,8 @@ class UserRepositoryImpl(UserRepository, SupabaseRepository):
         """Find user by email with role information"""
         try:
             query = """
-                users!inner(
-                    *,
-                    user_roles!inner(*)
-                )
+                *,
+                user_roles(*)
             """
 
             result = self.client.table(self.users_table).select(query).eq("email", email).single().execute()

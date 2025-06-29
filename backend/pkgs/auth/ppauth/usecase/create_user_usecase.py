@@ -10,7 +10,7 @@ from pydddi import (
     UseCaseResultError,
 )
 
-from ..domain.entities import UserEntity
+from ..domain.entities.user import UserEntity
 from ..domain.enums import UserRole
 from ..domain.services.user_service import UserService
 

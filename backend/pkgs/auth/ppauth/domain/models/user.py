@@ -6,7 +6,7 @@ User model for authentication
 from datetime import datetime, timedelta
 from typing import Any
 
-from pydantic import UUID4
+from pydantic import UUID4, Field
 from pydddi import IModel
 
 from ..enums import Permission, UserRole
@@ -21,6 +21,12 @@ class User(IModel):
     email: str
     user_name: str
     display_name: str
+    role: UserRole = UserRole.USER  # ユーザーロール
+    permissions: list[Permission] = Field(default_factory=list)  # ユーザー権限
+    is_active: bool = True  # アクティブフラグ
+    created_at: datetime | None = None  # 作成日時
+    avatar_url: str | None = None  # アバターURL
+    bio: str | None = None  # プロフィール説明
     _profile: Profile | None = None  # ユーザープロフィール情報(オプション)
     _role: Role | None = None  # ユーザーロール情報(オプション)
     # JWT関連フィールド(オプション)

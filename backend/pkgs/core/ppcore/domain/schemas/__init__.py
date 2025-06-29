@@ -1,2 +1,2 @@
-# coreには何も実装しない
+# core does not have any schemas.
 __all__ = []

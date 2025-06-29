@@ -1,10 +1,12 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from ..enums import Permission, UserRole
 
 
 class Role(BaseModel):
     """ユーザーロールモデル"""
+
+    model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True, extra="forbid")
 
     user_role: UserRole = Field(..., description="ユーザーロールの種類")
     permissions: list[Permission] = Field(

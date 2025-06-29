@@ -10,7 +10,7 @@ from pydddi import (
     UseCaseResultError,
 )
 
-from ..domain.entities import UserEntity
+from ..domain.entities.user import UserEntity
 from ..domain.services.user_service import UserService
 
 
@@ -99,7 +99,7 @@ class UpdateUserUseCase(IUseCase[UpdateUserCommand, UpdateUserResult]):
             user.display_name = command.display_name
 
         if command.password is not None:
-            user.password_hash = self.user_service.password_manager.hash_password(command.password)
+            user.password_hash = self.user_service.authentificator.hash_password(command.password)
 
         if command.avatar_url is not None:
             user.avatar_url = command.avatar_url

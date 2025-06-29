@@ -6,11 +6,11 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 from ...domain.enums import UserRole
+from ...domain.helpers.authentificator.authentificator import Authentificator
 from ...domain.models.user import User
-from ...domain.helpers.authentificator.authentificator import AuthenticationService
 from ...domain.services.user_service import UserService
 from ...usecase.create_user_usecase import CreateUserCommand, CreateUserUseCase
 from ...usecase.delete_user_usecase import DeleteUserCommand, DeleteUserUseCase
@@ -38,11 +38,15 @@ auth_router = APIRouter(prefix="/auth", tags=["pp_auth"])
 
 # Request/Response models
 class LoginRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+
     email: EmailStr
     password: str
 
 
 class RegisterRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+
     user_name: str
     display_name: str
     email: EmailStr
@@ -52,6 +56,8 @@ class RegisterRequest(BaseModel):
 
 
 class UpdateUserRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+
     user_name: str | None = None
     display_name: str | None = None
     email: EmailStr | None = None
@@ -62,12 +68,16 @@ class UpdateUserRequest(BaseModel):
 
 
 class TokenResponse(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+
     access_token: str
     token_type: str = "bearer"
     user: dict
 
 
 class UserResponse(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+
     id: str
     user_name: str
     display_name: str
@@ -80,11 +90,15 @@ class UserResponse(BaseModel):
 
 
 class UserListResponse(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+
     users: list[UserResponse]
     total_count: int
 
 
 class DeleteUserResponse(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+
     user_id: str
     deleted: bool
     soft_deleted: bool
@@ -95,30 +109,42 @@ class DeleteUserResponse(BaseModel):
 @auth_router.post("/login", response_model=TokenResponse)
 async def login(
     request: LoginRequest,
-    auth_service: AuthenticationService = Depends(get_auth_service),
+    auth_service: Authentificator = Depends(get_auth_service),
     user_service: UserService = Depends(get_user_service),
 ) -> TokenResponse:
     """User login endpoint"""
     try:
-        # Authenticate user
-        user = await auth_service.authenticate_user(request.email, request.password)
-        if not user:
+        # Authenticate user through user service (統合リポジトリを使用)
+        user_entity = await user_service.authenticate_user(request.email, request.password)
+        if not user_entity:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
+        # Convert entity to user model for token generation
+        user_model = User(
+            id=user_entity.id,
+            email=user_entity.email,
+            user_name=user_entity.user_name,
+            display_name=user_entity.display_name,
+            role=user_entity.role_entity.role if user_entity.role_entity else UserRole.USER,
+            permissions=[],  # TODO: permissions logic
+        )
+
         # Generate token
-        access_token = auth_service.create_access_token(data={"sub": str(user.id), "email": user.email})
+        access_token = auth_service.create_access_token(user_model)
 
         return TokenResponse(
             access_token=access_token,
             user={
-                "id": str(user.id),
-                "user_name": user.user_name,
-                "email": user.email,
-                "role": "USER",  # UserEntityにはroleがないのでデフォルト値を使用
+                "id": str(user_entity.id),
+                "user_name": user_entity.user_name,
+                "email": user_entity.email,
+                "role": user_entity.role_entity.role.value
+                if user_entity.role_entity
+                else UserRole.USER.value,
             },
         )
 
@@ -158,7 +184,7 @@ async def register(
             email=result.email,
             avatar_url=result.avatar_url,
             bio=result.bio,
-            role=UserRole.USER.value,
+            role=UserRole.USER,
             is_active=result.is_active,
             created_at="",  # TODO: 作成日時を取得
         )
@@ -183,7 +209,7 @@ async def get_current_user_info(
         email=current_user.email,
         avatar_url=current_user.avatar_url,
         bio=current_user.bio,
-        role=current_user.role.value,
+        role=current_user.role,
         is_active=current_user.is_active,
         created_at=current_user.created_at.isoformat() if current_user.created_at else "",
     )
@@ -209,7 +235,7 @@ async def get_active_users(
                 email=user.email,
                 avatar_url=user.avatar_url,
                 bio=user.bio,
-                role=user.role.value if hasattr(user, "role") else UserRole.USER.value,
+                role=user.role,
                 is_active=user.is_active,
                 created_at=user.created_at.isoformat() if user.created_at else "",
             )
@@ -249,7 +275,7 @@ async def get_user_by_id(
             email=user.email,
             avatar_url=user.avatar_url,
             bio=user.bio,
-            role=user.role.value if hasattr(user, "role") else UserRole.USER.value,
+            role=user.role_entity.role if user.role_entity else UserRole.USER,
             is_active=user.is_active,
             created_at=user.created_at.isoformat() if user.created_at else "",
         )
@@ -292,7 +318,7 @@ async def get_users_by_role(
                     email=user.email,
                     avatar_url=user.avatar_url,
                     bio=user.bio,
-                    role=user.role.value if hasattr(user, "role") else role.value,
+                    role=user.role_entity.role if user.role_entity else role,
                     is_active=user.is_active,
                     created_at=user.created_at.isoformat() if user.created_at else "",
                 )
@@ -346,7 +372,7 @@ async def update_user(
             email=result.email,
             avatar_url=result.avatar_url,
             bio=result.bio,
-            role=UserRole.USER.value,  # TODO: ロール情報も返すように改善
+            role=UserRole.USER,  # TODO: ロール情報も返すように改善
             is_active=result.is_active,
             created_at="",  # TODO: 作成日時を取得
         )
@@ -422,7 +448,7 @@ async def create_user_admin(
             email=result.email,
             avatar_url=result.avatar_url,
             bio=result.bio,
-            role=role.value,
+            role=role,
             is_active=result.is_active,
             created_at="",  # TODO: 作成日時を取得
         )

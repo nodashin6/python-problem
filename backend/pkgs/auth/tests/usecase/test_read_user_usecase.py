@@ -8,7 +8,7 @@ from uuid import uuid4
 import pytest
 from pydddi import UseCaseExecutionError
 
-from ppauth.domain.entities import UserEntity, UserRoleEntity
+from ppauth.domain.entities import RoleEntity, UserEntity
 from ppauth.domain.enums import UserRole
 from ppauth.domain.services.user_service import UserService
 from ppauth.usecase.read_user_usecase import (
@@ -28,7 +28,7 @@ class TestReadUserByIdUseCase:
 
     @pytest.mark.asyncio
     async def test_read_user_by_id_success(
-        self, user_service: UserService, sample_user: UserEntity, sample_user_role: UserRoleEntity
+        self, user_service: UserService, sample_user: UserEntity, sample_role: RoleEntity
     ):
         """Test successful user retrieval by ID"""
         # Arrange
@@ -36,10 +36,10 @@ class TestReadUserByIdUseCase:
         command = ReadUserByIdCommand(user_id=user_id)
 
         # Set up user role with matching user_id
-        sample_user_role.user_id = user_id
+        sample_role.user_id = user_id
 
-        user_service.user_repo.read = AsyncMock(return_value=sample_user)
-        user_service.user_role_repo.find_by_user_id = AsyncMock(return_value=[sample_user_role])
+        user_service.user_repo.find_by_id_with_role = AsyncMock(return_value=sample_user)
+        # user_service.user_role_repo.find_by_user_id = AsyncMock(return_value=[sample_role])
 
         usecase = ReadUserByIdUseCase(user_service)
 
@@ -57,7 +57,7 @@ class TestReadUserByIdUseCase:
         assert result.user.is_active == sample_user.is_active
 
         # Verify service calls
-        user_service.user_repo.read.assert_called_once_with(user_id)
+        user_service.user_repo.find_by_id_with_role.assert_called_once_with(user_id)
 
     @pytest.mark.asyncio
     async def test_read_user_by_id_not_found(self, user_service: UserService):
@@ -66,7 +66,7 @@ class TestReadUserByIdUseCase:
         user_id = uuid4()
         command = ReadUserByIdCommand(user_id=user_id)
 
-        user_service.user_repo.read = AsyncMock(return_value=None)
+        user_service.user_repo.find_by_id_with_role = AsyncMock(return_value=None)
 
         usecase = ReadUserByIdUseCase(user_service)
 
@@ -83,7 +83,7 @@ class TestReadUserByIdUseCase:
         user_id = sample_user.id
         command = ReadUserByIdCommand(user_id=user_id)
 
-        user_service.user_repo.read = AsyncMock(return_value=sample_user)
+        user_service.user_repo.find_by_id_with_role = AsyncMock(return_value=sample_user)
 
         usecase = ReadUserByIdUseCase(user_service)
 
@@ -101,7 +101,7 @@ class TestReadUserByIdUseCase:
         assert result.user.is_active == sample_user.is_active
 
         # Verify service calls
-        user_service.user_repo.read.assert_called_once_with(user_id)
+        user_service.user_repo.find_by_id_with_role.assert_called_once_with(user_id)
 
 
 class TestReadUserByEmailUseCase:
@@ -159,7 +159,8 @@ class TestReadUsersByRoleUseCase:
         role = UserRole.ADMIN
         command = ReadUsersByRoleCommand(role=role, limit=10, offset=0)
 
-        admin_user_role = UserRoleEntity(
+        # admin_userにroleを設定
+        admin_user.role_entity = RoleEntity(
             id=uuid4(),
             user_id=admin_user.id,
             role=UserRole.ADMIN,
@@ -167,10 +168,8 @@ class TestReadUsersByRoleUseCase:
             updated_at=admin_user.updated_at,
         )
 
-        user_service.user_role_repo.find_by_role = AsyncMock(return_value=[admin_user_role])
-        user_service.user_repo.read = AsyncMock(return_value=admin_user)
-        user_service.user_role_repo.find_by_user_id = AsyncMock(return_value=[admin_user_role])
-        user_service.user_role_repo.count_by_role = AsyncMock(return_value=1)
+        # 正しいメソッドをモック
+        user_service.user_repo.list_users_by_role = AsyncMock(return_value=[admin_user])
 
         usecase = ReadUsersByRoleUseCase(user_service)
 
@@ -183,11 +182,8 @@ class TestReadUsersByRoleUseCase:
         assert result.total_count == 1
         assert result.users[0].user.id == admin_user.id
 
-        # Verify service calls (roles are no longer fetched in the usecase)
-
         # Verify service calls
-        user_service.user_role_repo.find_by_role.assert_called_once_with(role, limit=10, offset=0)
-        user_service.user_role_repo.count_by_role.assert_called_once_with(role)
+        user_service.user_repo.list_users_by_role.assert_called_once_with(role=role, limit=10, offset=0)
 
     @pytest.mark.asyncio
     async def test_read_users_by_role_empty_result(self, user_service: UserService):
@@ -196,8 +192,8 @@ class TestReadUsersByRoleUseCase:
         role = UserRole.ADMIN
         command = ReadUsersByRoleCommand(role=role)
 
-        user_service.user_role_repo.find_by_role = AsyncMock(return_value=[])
-        user_service.user_role_repo.count_by_role = AsyncMock(return_value=0)
+        # リポジトリが空のリストを返すことをモック
+        user_service.user_repo.list_users_by_role = AsyncMock(return_value=[])
 
         usecase = ReadUsersByRoleUseCase(user_service)
 
@@ -209,6 +205,9 @@ class TestReadUsersByRoleUseCase:
         assert len(result.users) == 0
         assert result.total_count == 0
 
+        # Verify correct method was called
+        user_service.user_repo.list_users_by_role.assert_called_once_with(role=role, limit=100, offset=0)
+
     @pytest.mark.asyncio
     async def test_read_users_by_role_with_pagination(
         self, user_service: UserService, sample_user: UserEntity
@@ -218,7 +217,8 @@ class TestReadUsersByRoleUseCase:
         role = UserRole.USER
         command = ReadUsersByRoleCommand(role=role, limit=5, offset=10)
 
-        user_role = UserRoleEntity(
+        # sample_userにroleを設定
+        sample_user.role_entity = RoleEntity(
             id=uuid4(),
             user_id=sample_user.id,
             role=UserRole.USER,
@@ -226,10 +226,8 @@ class TestReadUsersByRoleUseCase:
             updated_at=sample_user.updated_at,
         )
 
-        user_service.user_role_repo.find_by_role = AsyncMock(return_value=[user_role])
-        user_service.user_repo.read = AsyncMock(return_value=sample_user)
-        user_service.user_role_repo.find_by_user_id = AsyncMock(return_value=[user_role])
-        user_service.user_role_repo.count_by_role = AsyncMock(return_value=25)
+        # 正しいメソッドをモック
+        user_service.user_repo.list_users_by_role = AsyncMock(return_value=[sample_user])
 
         usecase = ReadUsersByRoleUseCase(user_service)
 
@@ -238,37 +236,29 @@ class TestReadUsersByRoleUseCase:
 
         # Assert
         assert len(result.users) == 1
-        assert result.total_count == 25
+        assert result.total_count == 1  # 実際にはリポジトリが返すユーザー数
 
         # Verify pagination parameters were passed
-        user_service.user_role_repo.find_by_role.assert_called_once_with(role, limit=5, offset=10)
+        user_service.user_repo.list_users_by_role.assert_called_once_with(role=role, limit=5, offset=10)
 
     @pytest.mark.asyncio
     async def test_read_users_by_role_user_not_found(self, user_service: UserService):
-        """Test users retrieval when user role exists but user entity is deleted"""
+        """Test users retrieval when no users exist for the role"""
         # Arrange
         role = UserRole.USER
         command = ReadUsersByRoleCommand(role=role)
 
-        from datetime import datetime
-
-        orphaned_user_role = UserRoleEntity(
-            id=uuid4(),
-            user_id=uuid4(),  # Non-existent user
-            role=UserRole.USER,
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
-        )
-
-        user_service.user_role_repo.find_by_role = AsyncMock(return_value=[orphaned_user_role])
-        user_service.user_repo.read = AsyncMock(return_value=None)  # User not found
-        user_service.user_role_repo.count_by_role = AsyncMock(return_value=1)
+        # リポジトリが空のリストを返すことをモック
+        user_service.user_repo.list_users_by_role = AsyncMock(return_value=[])
 
         usecase = ReadUsersByRoleUseCase(user_service)
 
         # Act
         result = await usecase.execute(command)
 
-        # Assert - Should skip users that don't exist
+        # Assert - Should return empty result
         assert len(result.users) == 0
-        assert result.total_count == 1  # Count still includes the role
+        assert result.total_count == 0
+
+        # Verify correct method was called
+        user_service.user_repo.list_users_by_role.assert_called_once_with(role=role, limit=100, offset=0)

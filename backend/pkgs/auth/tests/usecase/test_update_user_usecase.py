@@ -127,7 +127,7 @@ class TestUpdateUserUseCase:
 
         user_service.user_repo.read = AsyncMock(return_value=sample_user)
         user_service.user_repo.update = AsyncMock(return_value=updated_user)
-        user_service.password_manager.hash_password = Mock(return_value=new_password_hash)
+        user_service.authentificator.hash_password = Mock(return_value=new_password_hash)
 
         usecase = UpdateUserUseCase(user_service)
 
@@ -135,7 +135,7 @@ class TestUpdateUserUseCase:
         result = await usecase.execute(command)
 
         # Assert
-        user_service.password_manager.hash_password.assert_called_once_with(new_password)
+        user_service.authentificator.hash_password.assert_called_once_with(new_password)
         user_service.user_repo.update.assert_called_once()
 
     @pytest.mark.asyncio

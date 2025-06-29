@@ -80,10 +80,10 @@ class TestAuthenticationEndpoints:
         """Test successful login"""
         # Setup mock services with proper async mocking
         mock_auth_service = Mock()
-        mock_auth_service.authenticate_user = AsyncMock(return_value=sample_user)
         mock_auth_service.create_access_token = Mock(return_value="test_token")
 
         mock_user_service = Mock()
+        mock_user_service.authenticate_user = AsyncMock(return_value=sample_user)
 
         # Override dependencies
         app.dependency_overrides[get_auth_service] = lambda: mock_auth_service
@@ -109,9 +109,9 @@ class TestAuthenticationEndpoints:
         """Test login with invalid credentials"""
         # Setup mock services
         mock_auth_service = Mock()
-        mock_auth_service.authenticate_user = AsyncMock(return_value=None)
 
         mock_user_service = Mock()
+        mock_user_service.authenticate_user = AsyncMock(return_value=None)
 
         # Override dependencies
         app.dependency_overrides[get_auth_service] = lambda: mock_auth_service

@@ -21,7 +21,7 @@ class ReadUserByIdUseCase(IUseCase[ReadUserByIdCommand, UserResult]):
     async def execute(self, command: ReadUserByIdCommand) -> UserResult:
         """Execute the read user by ID use case"""
         try:
-            user = await self.user_service.user_repo.read(command.user_id)
+            user = await self.user_service.user_repo.find_by_id_with_role(command.user_id)
             if not user:
                 raise UseCaseExecutionError(f"User with ID {command.user_id} not found")
 

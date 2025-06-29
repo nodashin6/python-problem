@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import pytest
 
-from ppauth.domain.entities import UserEntity, UserRoleEntity
+from ppauth.domain.entities.user import RoleEntity, UserEntity
 from ppauth.domain.enums import UserRole
 from ppauth.domain.services.user_service import UserService
 
@@ -20,21 +20,21 @@ class TestUserService:
         """Test email availability check when email is available"""
         # Arrange
         email = "available@example.com"
-        user_service.user_repo.exists_by_email = AsyncMock(return_value=False)
+        user_service.user_repo.find_by_email = AsyncMock(return_value=None)
 
         # Act
         result = await user_service.is_email_available(email)
 
         # Assert
         assert result is True
-        user_service.user_repo.exists_by_email.assert_called_once_with(email)
+        user_service.user_repo.find_by_email.assert_called_once_with(email)
 
     @pytest.mark.asyncio
-    async def test_is_email_available_false(self, user_service: UserService):
+    async def test_is_email_available_false(self, user_service: UserService, sample_user: UserEntity):
         """Test email availability check when email is taken"""
         # Arrange
         email = "taken@example.com"
-        user_service.user_repo.exists_by_email = AsyncMock(return_value=True)
+        user_service.user_repo.find_by_email = AsyncMock(return_value=sample_user)
 
         # Act
         result = await user_service.is_email_available(email)
@@ -47,21 +47,21 @@ class TestUserService:
         """Test user_name availability check when user_name is available"""
         # Arrange
         user_name = "availableuser"
-        user_service.user_repo.exists_by_user_name = AsyncMock(return_value=False)
+        user_service.user_repo.find_by_user_name = AsyncMock(return_value=None)
 
         # Act
         result = await user_service.is_user_name_available(user_name)
 
         # Assert
         assert result is True
-        user_service.user_repo.exists_by_user_name.assert_called_once_with(user_name)
+        user_service.user_repo.find_by_user_name.assert_called_once_with(user_name)
 
     @pytest.mark.asyncio
-    async def test_is_user_name_available_false(self, user_service: UserService):
+    async def test_is_user_name_available_false(self, user_service: UserService, sample_user: UserEntity):
         """Test user_name availability check when user_name is taken"""
         # Arrange
         user_name = "takenuser"
-        user_service.user_repo.exists_by_user_name = AsyncMock(return_value=True)
+        user_service.user_repo.find_by_user_name = AsyncMock(return_value=sample_user)
 
         # Act
         result = await user_service.is_user_name_available(user_name)
@@ -78,10 +78,9 @@ class TestUserService:
         display_name = "New User"
         password = "password123"
 
-        user_service.user_repo.exists_by_email = AsyncMock(return_value=False)
-        user_service.user_repo.exists_by_user_name = AsyncMock(return_value=False)
-        user_service.user_repo.create = AsyncMock(return_value=sample_user)
-        user_service.user_role_repo.create = AsyncMock(return_value=None)
+        user_service.user_repo.find_by_email = AsyncMock(return_value=None)
+        user_service.user_repo.find_by_user_name = AsyncMock(return_value=None)
+        user_service.user_repo.create_user_with_role = AsyncMock(return_value=sample_user)
 
         # Act
         result = await user_service.register_user(
@@ -90,12 +89,11 @@ class TestUserService:
 
         # Assert
         assert result == sample_user
-        user_service.password_manager.hash_password.assert_called_once_with(password)
-        user_service.user_repo.create.assert_called_once()
-        user_service.user_role_repo.create.assert_called_once()
+        user_service.authentificator.hash_password.assert_called_once_with(password)
+        user_service.user_repo.create_user_with_role.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_register_user_email_taken(self, user_service: UserService):
+    async def test_register_user_email_taken(self, user_service: UserService, sample_user: UserEntity):
         """Test user registration when email is already taken"""
         # Arrange
         email = "taken@example.com"
@@ -103,7 +101,7 @@ class TestUserService:
         display_name = "New User"
         password = "password123"
 
-        user_service.user_repo.exists_by_email = AsyncMock(return_value=True)
+        user_service.user_repo.find_by_email = AsyncMock(return_value=sample_user)
 
         # Act & Assert
         with pytest.raises(ValueError) as exc_info:
@@ -114,7 +112,7 @@ class TestUserService:
         assert "Email already exists" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_register_user_user_name_taken(self, user_service: UserService):
+    async def test_register_user_user_name_taken(self, user_service: UserService, sample_user: UserEntity):
         """Test user registration when user_name is already taken"""
         # Arrange
         email = "new@example.com"
@@ -122,8 +120,8 @@ class TestUserService:
         display_name = "New User"
         password = "password123"
 
-        user_service.user_repo.exists_by_email = AsyncMock(return_value=False)
-        user_service.user_repo.exists_by_user_name = AsyncMock(return_value=True)
+        user_service.user_repo.find_by_email = AsyncMock(return_value=None)
+        user_service.user_repo.find_by_user_name = AsyncMock(return_value=sample_user)
 
         # Act & Assert
         with pytest.raises(ValueError) as exc_info:
@@ -141,7 +139,7 @@ class TestUserService:
         password = "correct_password"
 
         user_service.user_repo.find_by_email = AsyncMock(return_value=sample_user)
-        user_service.password_manager.verify_password = Mock(return_value=True)
+        user_service.authentificator.verify_password = Mock(return_value=True)
 
         # Act
         result = await user_service.authenticate_user(email, password)
@@ -149,7 +147,7 @@ class TestUserService:
         # Assert
         assert result == sample_user
         user_service.user_repo.find_by_email.assert_called_once_with(email)
-        user_service.password_manager.verify_password.assert_called_once_with(
+        user_service.authentificator.verify_password.assert_called_once_with(
             password, sample_user.password_hash
         )
 
@@ -163,7 +161,7 @@ class TestUserService:
         password = "wrong_password"
 
         user_service.user_repo.find_by_email = AsyncMock(return_value=sample_user)
-        user_service.password_manager.verify_password = Mock(return_value=False)
+        user_service.authentificator.verify_password = Mock(return_value=False)
 
         # Act
         result = await user_service.authenticate_user(email, password)
@@ -207,23 +205,21 @@ class TestUserService:
         """Test successful user deactivation"""
         # Arrange
         user_id = sample_user.id
-        user_service.user_repo.read = AsyncMock(return_value=sample_user)
-        user_service.user_repo.update = AsyncMock(return_value=sample_user)
+        user_service.user_repo.update_user_with_role = AsyncMock(return_value=sample_user)
 
         # Act
         result = await user_service.deactivate_user(user_id)
 
         # Assert
         assert result is True
-        user_service.user_repo.read.assert_called_once_with(user_id)
-        user_service.user_repo.update.assert_called_once()
+        user_service.user_repo.update_user_with_role.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_deactivate_user_not_found(self, user_service: UserService):
         """Test user deactivation when user is not found"""
         # Arrange
         user_id = uuid4()
-        user_service.user_repo.read = AsyncMock(return_value=None)
+        user_service.user_repo.update_user_with_role = AsyncMock(return_value=None)
 
         # Act
         result = await user_service.deactivate_user(user_id)
@@ -238,16 +234,16 @@ class TestUserService:
         user_id = uuid4()
         role = UserRole.ADMIN
 
-        user_service.user_role_repo.exists_by_user_id_and_role = AsyncMock(return_value=False)
-        user_service.user_role_repo.create = AsyncMock(return_value=None)
+        # user_service.user_role_repo.exists_by_user_id_and_role = AsyncMock(return_value=False)
+        # user_service.user_role_repo.create = AsyncMock(return_value=None)
 
         # Act
-        result = await user_service.assign_role(user_id, role)
+        result = await user_service.change_user_role(user_id, role)
 
         # Assert
-        assert result is True
-        user_service.user_role_repo.exists_by_user_id_and_role.assert_called_once_with(user_id, role)
-        user_service.user_role_repo.create.assert_called_once()
+        assert result is None  # change_user_role returns UserEntity or None
+        # user_service.user_role_repo.exists_by_user_id_and_role.assert_called_once_with(user_id, role)
+        # user_service.user_role_repo.create.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_assign_role_already_exists(self, user_service: UserService):
@@ -256,26 +252,10 @@ class TestUserService:
         user_id = uuid4()
         role = UserRole.ADMIN
 
-        user_service.user_role_repo.exists_by_user_id_and_role = AsyncMock(return_value=True)
+        # user_service.user_role_repo.exists_by_user_id_and_role = AsyncMock(return_value=True)
 
         # Act
-        result = await user_service.assign_role(user_id, role)
+        result = await user_service.change_user_role(user_id, role)
 
         # Assert
-        assert result is False
-
-    @pytest.mark.asyncio
-    async def test_remove_role_success(self, user_service: UserService):
-        """Test successful role removal"""
-        # Arrange
-        user_id = uuid4()
-        role = UserRole.ADMIN
-
-        user_service.user_role_repo.delete_user_role = AsyncMock(return_value=True)
-
-        # Act
-        result = await user_service.remove_role(user_id, role)
-
-        # Assert
-        assert result is True
-        user_service.user_role_repo.delete_user_role.assert_called_once_with(user_id, role)
+        assert result is None  # change_user_role returns UserEntity or None

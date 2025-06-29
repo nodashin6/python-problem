@@ -14,7 +14,7 @@ import jwt
 from src.const import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET_KEY
 from src.utils.logging import get_logger
 
-from ..models.user import User
+from ...models.user import User
 
 
 class JWTManager:

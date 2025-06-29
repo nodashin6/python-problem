@@ -5,7 +5,7 @@ Auth Domain Package
 
 # Models (Aggregate Roots)
 # Entities (Persistence Objects)
-from .entities import UserEntity, UserRoleEntity
+from .entities import RoleEntity, UserEntity
 
 # Enums
 from .enums import Permission, UserRole
@@ -22,7 +22,7 @@ from .schemas import (
 )
 
 # Domain Services
-from .services import AuthDomainService, UserDomainService
+from .services import UserService
 
 __all__ = [
     # Models
@@ -34,8 +34,7 @@ __all__ = [
     "UserRole",
     "Permission",
     # Services
-    "UserDomainService",
-    "AuthDomainService",
+    "UserService",
     # Repositories
     "UserRepository",
     "UserAggregateReadRepository",

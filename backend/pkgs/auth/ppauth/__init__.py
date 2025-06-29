@@ -12,44 +12,4 @@ Auth Package
 
 # Domain Models (User Aggregate)
 # API Controllers
-from .app.api.controllers import AuthController, UserController
-
-# Domain Entities
-from .domain.entities import UserEntity, UserRoleEntity
-
-# Domain Enums
-from .domain.enums import Permission, UserRole
-from .domain.models import User
-
-# Domain Services
-from .domain.services import AuthDomainService, UserDomainService
-
-# Use Cases
-from .usecase import (
-    AuthenticateUserUseCase,
-    CreateUserUseCase,
-    DeleteUserUseCase,
-    UpdateUserUseCase,
-)
-
-__all__ = [
-    # Models
-    "User",
-    # Entities
-    "UserEntity",
-    "UserRoleEntity",
-    # Enums
-    "UserRole",
-    "Permission",
-    # Services
-    "UserDomainService",
-    "AuthDomainService",
-    # Use Cases
-    "CreateUserUseCase",
-    "AuthenticateUserUseCase",
-    "UpdateUserUseCase",
-    "DeleteUserUseCase",
-    # Controllers
-    "AuthController",
-    "UserController",
-]
+from .infrastructure.supabase import dependencies

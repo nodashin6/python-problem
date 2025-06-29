@@ -50,11 +50,8 @@ class DeleteUserUseCase(IUseCase[DeleteUserCommand, DeleteUserResult]):
                     soft_deleted=True,
                 )
             else:
-                # Hard delete - remove from database
+                # Hard delete - remove from database (includes associated roles)
                 await self.user_service.user_repo.delete(command.user_id)
-
-                # Also delete associated user roles
-                await self.user_service.user_role_repo.delete_by_user_id(command.user_id)
 
                 return DeleteUserResult(
                     user_id=command.user_id,

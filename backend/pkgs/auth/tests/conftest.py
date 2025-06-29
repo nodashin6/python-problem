@@ -21,11 +21,12 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from ppauth.domain.entities.entities import UserEntity, UserRoleEntity
+from ppauth.domain.entities.user import RoleEntity, UserEntity
 from ppauth.domain.enums import UserRole
+from ppauth.domain.helpers.authentificator.authentificator import Authentificator
+from ppauth.domain.helpers.authentificator.password_helper import PasswordManager
+from ppauth.domain.helpers.authentificator.token_helper import JWTManager
 from ppauth.domain.repositories.user_repository import UserRepository
-from ppauth.domain.repositories.user_role_respository import UserRoleRepository
-from backend.pkgs.auth.ppauth.domain.helpers.authentificator.authentificator import JWTManager, PasswordManager
 from ppauth.domain.services.user_service import UserService
 
 
@@ -43,36 +44,25 @@ def mock_user_repository() -> UserRepository:
     mock_repo = AsyncMock()
 
     # Manually configure all repository methods
-    mock_repo.read = AsyncMock(return_value=None)
-    mock_repo.create = AsyncMock(return_value=None)
-    mock_repo.update = AsyncMock(return_value=None)
-    mock_repo.delete = AsyncMock(return_value=None)
+    mock_repo.create_user_with_role = AsyncMock(return_value=None)
+    mock_repo.update_user_with_role = AsyncMock(return_value=None)
     mock_repo.find_by_email = AsyncMock(return_value=None)
     mock_repo.find_by_user_name = AsyncMock(return_value=None)
-    mock_repo.exists_by_email = AsyncMock(return_value=False)
-    mock_repo.exists_by_user_name = AsyncMock(return_value=False)
+    mock_repo.find_by_id_with_role = AsyncMock(return_value=None)
+    mock_repo.list_active_users = AsyncMock(return_value=[])
+    mock_repo.delete = AsyncMock(return_value=True)
 
     return mock_repo
 
 
 @pytest.fixture
-def mock_user_role_repository() -> UserRoleRepository:
-    """Mock user role repository for testing"""
-    mock_repo = AsyncMock()
-
-    # Manually configure all repository methods
-    mock_repo.read = AsyncMock(return_value=None)
-    mock_repo.create = AsyncMock(return_value=None)
-    mock_repo.update = AsyncMock(return_value=None)
-    mock_repo.delete = AsyncMock(return_value=None)
-    mock_repo.find_by_user_id = AsyncMock(return_value=[])
-    mock_repo.find_by_role = AsyncMock(return_value=[])
-    mock_repo.count_by_role = AsyncMock(return_value=0)
-    mock_repo.exists_by_user_id_and_role = AsyncMock(return_value=False)
-    mock_repo.delete_user_role = AsyncMock(return_value=True)
-    mock_repo.delete_by_user_id = AsyncMock(return_value=True)
-
-    return mock_repo
+def mock_authentificator() -> Authentificator:
+    """Mock authentificator for testing"""
+    mock_auth = Mock()
+    mock_auth.hash_password = Mock(return_value="$2b$12$abcdefghijklmnopqrstuvwxyz123456789012345678901234")
+    mock_auth.verify_password = Mock(return_value=True)
+    mock_auth.create_access_token = Mock(return_value="mock_jwt_token")
+    return mock_auth
 
 
 @pytest.fixture
@@ -103,22 +93,26 @@ def mock_jwt_manager() -> JWTManager:
 @pytest.fixture
 def user_service(
     mock_user_repository: UserRepository,
-    mock_user_role_repository: UserRoleRepository,
-    mock_password_manager: PasswordManager,
-    mock_jwt_manager: JWTManager,
+    mock_authentificator: Authentificator,
 ) -> UserService:
     """User service with mocked dependencies"""
     return UserService(
         user_repo=mock_user_repository,
-        user_role_repo=mock_user_role_repository,
-        password_manager=mock_password_manager,
-        token_manager=mock_jwt_manager,
+        authentificator=mock_authentificator,
     )
 
 
 @pytest.fixture
 def sample_user() -> UserEntity:
     """Sample user entity for testing"""
+    role_entity = RoleEntity(
+        id=uuid4(),
+        user_id=uuid4(),
+        role=UserRole.USER,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+
     return UserEntity(
         id=uuid4(),
         user_name="testuser",
@@ -130,14 +124,15 @@ def sample_user() -> UserEntity:
         is_active=True,
         created_at=datetime.now(),
         updated_at=datetime.now(),
+        role_entity=role_entity,
     )
 
 
 @pytest.fixture
-def sample_user_role() -> UserRoleEntity:
-    """Sample user role entity for testing"""
+def sample_role() -> RoleEntity:
+    """Sample role entity for testing"""
     user_id = uuid4()
-    return UserRoleEntity(
+    return RoleEntity(
         id=uuid4(),
         user_id=user_id,
         role=UserRole.USER,
@@ -149,6 +144,14 @@ def sample_user_role() -> UserRoleEntity:
 @pytest.fixture
 def admin_user() -> UserEntity:
     """Sample admin user entity for testing"""
+    role_entity = RoleEntity(
+        id=uuid4(),
+        user_id=uuid4(),
+        role=UserRole.ADMIN,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+
     return UserEntity(
         id=uuid4(),
         user_name="adminuser",
@@ -160,14 +163,15 @@ def admin_user() -> UserEntity:
         is_active=True,
         created_at=datetime.now(),
         updated_at=datetime.now(),
+        role_entity=role_entity,
     )
 
 
 @pytest.fixture
-def admin_user_role() -> UserRoleEntity:
-    """Sample admin user role entity for testing"""
+def admin_role() -> RoleEntity:
+    """Sample admin role entity for testing"""
     user_id = uuid4()
-    return UserRoleEntity(
+    return RoleEntity(
         id=uuid4(),
         user_id=user_id,
         role=UserRole.ADMIN,

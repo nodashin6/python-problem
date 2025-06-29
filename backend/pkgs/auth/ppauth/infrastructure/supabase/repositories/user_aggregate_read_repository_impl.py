@@ -6,10 +6,11 @@ from typing import Any
 from uuid import UUID
 
 from pydantic import UUID4
-from supabase import Client
 
-from ppcore.infrastructure.supabase.repository import SupabaseRepository
+from ppcore.domain.repositories import SupabaseRepository
+from ppcore.infrastructure.supabase.repositories import SupabaseRepositoryImpl
 from src.utils import get_logger
+from supabase import Client
 
 from ....domain.enums import ROLE_PERMISSIONS, UserRole
 from ....domain.models.user import User
@@ -21,7 +22,7 @@ from ....domain.repositories.user_aggreate_read_repository import (
 logger = get_logger(__name__)
 
 
-class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepository):
+class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepositoryImpl):
     """User aggregate read repository implementation with Supabase"""
 
     def __init__(self, client: Client):
@@ -35,7 +36,7 @@ class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepos
             user_data = await self._read_user_with_role(id)
 
             if not user_data:
-                from pydddi.infrastructure.repository import RecordNotFoundError
+                from pydddi import RecordNotFoundError
 
                 raise RecordNotFoundError(f"User with id {id} not found")
 
