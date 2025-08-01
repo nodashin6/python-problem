@@ -1,19 +1,24 @@
 """
-Base Entity for Core Domain
-コアドメイン基底エンティティ
+Base Entity for Core Domain (DEPRECATED)
+コアドメイン基底エンティティ - Deprecated: Use ppcore.domain.base.BaseEntity instead
 """
 
 from datetime import datetime
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from pydantic import UUID4, ConfigDict, Field
-from pydddi import IEntity
+
+# This class is deprecated in favor of ppcore.domain.base.BaseEntity
+# Remove pydddi dependency to avoid external framework coupling
 
 
-class BaseEntity(IEntity[UUID4]):
+class BaseEntity:
     """
-    Core domain base entity
+    Core domain base entity (DEPRECATED)
     DDDのEntityクラス - 永続化に焦点を当てたデータ構造
+    
+    WARNING: This class is deprecated. Use ppcore.domain.base.BaseEntity instead.
+    This maintains backward compatibility but should be migrated.
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True, use_enum_values=True, validate_assignment=True)

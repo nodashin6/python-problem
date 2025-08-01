@@ -3,8 +3,8 @@ Judge Domain Repositories module
 ジャッジドメインリポジトリモジュール
 """
 
-from .submission_repository import SubmissionRepository
-from .code_execution_repository import CodeExecutionRepository
-from .judge_queue_repository import JudgeQueueRepository
+from .submission_repository import SubmissionRepositoryBase
+from .code_execution_repository import CodeExecutionRepositoryBase
+from .judge_queue_repository import JudgeQueueRepositoryBase
 
-__all__ = ["SubmissionRepository", "CodeExecutionRepository", "JudgeQueueRepository"]
+__all__ = ["SubmissionRepositoryBase", "CodeExecutionRepositoryBase", "JudgeQueueRepositoryBase"]

@@ -3,7 +3,7 @@ import { JudgeCaseTable } from '@/components/problem/JudgeCaseTable';
 import { TestResult } from '@/components/problem/TestResultCard';
 import { TestResults } from '@/components/problem/TestResults';
 import { JudgeStatus } from '@/lib/api';
-import type { JudgeResponse, JudgeResult } from '@/types/judge';
+import type { JudgeResponse } from '@/types/judge';
 import JudgeCaseDetails from '@/components/problem/JudgeCaseDetails';
 
 interface JudgeResultSectionProps {
@@ -163,8 +163,8 @@ export const JudgeResultSection: React.FC<JudgeResultSectionProps> = ({
               judgeStatus={judgeStatus} 
               submitting={submitting}  
               isPolling={isPolling}
-              allResults={hasTestResults ? testResults : []}
-              onJudgeCaseSelect={handleJudgeCaseSelect}
+              allResults={hasTestResults ? testResults as never : []}
+              onJudgeCaseSelect={handleJudgeCaseSelect as never}
               selectedJudgeCaseId={selectedJudgeCase?.id}
             />
           </>
@@ -173,7 +173,7 @@ export const JudgeResultSection: React.FC<JudgeResultSectionProps> = ({
         {/* 選択されたテストケースの詳細表示 */}
         {selectedJudgeCase && (
           <JudgeCaseDetails
-            JudgeCase={selectedJudgeCase}
+            JudgeCase={selectedJudgeCase as never}
             onClose={() => handleJudgeCaseSelect(selectedJudgeCase)}
           />
         )}

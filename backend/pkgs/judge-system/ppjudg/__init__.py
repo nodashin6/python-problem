@@ -12,14 +12,14 @@ Judge System Package
 
 # Domain Models
 # Domain Entities
-from .domain.entities import JudgeResultEntity, SubmissionEntity
+# from .domain.entities import JudgeResultEntity, SubmissionEntity  # TODO: entities need to be implemented
 from .domain.models import ExecutionResult, JudgeResult, Submission
 
 # Domain Services
-from .domain.services import ExecutionService, JudgeDomainService
+from .domain.services import JudgeDomainService
 
 # Queue Services (Judge-specific)
-from .queue import JudgeQueueService
+# from .queue import JudgeQueueService  # TODO: queue module needs to be implemented
 
 # Use Cases
 from .usecase import (

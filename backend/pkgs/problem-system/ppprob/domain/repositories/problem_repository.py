@@ -55,7 +55,7 @@ class UpdateProblemSchema(IUpdateSchema):
     content_created_at: datetime | None = None
 
 
-class ProblemRepository(
+class ProblemRepositoryBase(
     ICrudRepository[ProblemEntity, CreateProblemSchema, ReadProblemSchema, UpdateProblemSchema],
     HasDomainRepository,
 ):

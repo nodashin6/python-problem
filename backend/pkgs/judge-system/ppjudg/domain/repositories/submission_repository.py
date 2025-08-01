@@ -9,14 +9,14 @@ from datetime import datetime
 from typing import List, Optional
 
 from ..models import Submission
-from ....const import (
+from ..value_objects.execution_status import (
     ProgrammingLanguage as Language,
     JudgeResultType as JudgeResult,
     ExecutionStatus,
 )
 
 
-class SubmissionRepository(ABC):
+class SubmissionRepositoryBase(ABC):
     """提出リポジトリのインターフェース"""
 
     @abstractmethod

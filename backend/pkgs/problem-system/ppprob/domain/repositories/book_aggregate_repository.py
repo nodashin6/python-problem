@@ -26,7 +26,7 @@ class BookReadAggregateSchema(IReadAggregateSchema):
     author_email: str = Field(description="Email of the book author")
 
 
-class BookAggregateRepository(IReadAggregateRepository[Book, BookReadAggregateSchema], HasDomainRepository):
+class BookAggregateRepositoryBase(IReadAggregateRepository[Book, BookReadAggregateSchema], HasDomainRepository):
     """Repository interface for book aggregates."""
 
     async def find_by_id(self, book_id: str) -> Book | None:

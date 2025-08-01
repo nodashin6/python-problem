@@ -8,6 +8,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from ..domain.enums import UserRole
 from ..domain.helpers.authentificator.authentificator import Authentificator
 from ..domain.models.user import User
+from ..domain.protocols import ConfigurationProvider, DatabaseConfig
 from ..domain.services.user_service import UserService
 from ..usecase.create_user_usecase import CreateUserUseCase
 from ..usecase.delete_user_usecase import DeleteUserUseCase
@@ -30,18 +31,31 @@ async def get_auth_service() -> Authentificator:
     return auth_service
 
 
-async def get_user_service() -> UserService:
+# Configuration dependency - should be injected from environment/config service
+async def get_database_config() -> DatabaseConfig:
+    """Get database configuration"""
+    # TODO: This should be injected from a proper configuration service
+    # For now, we'll use environment variables with a fallback
+    import os
+    
+    return DatabaseConfig(
+        url=os.getenv("SUPABASE_URL", "http://localhost:54321"),
+        key=os.getenv("SUPABASE_ANON_KEY", "your-anon-key-here"),
+        timeout=30.0,
+        max_connections=10
+    )
+
+
+async def get_user_service(
+    db_config: DatabaseConfig = Depends(get_database_config),
+) -> UserService:
     """Get user service"""
-    # TODO: 実際の実装では DI コンテナから取得
-    # 今回は簡易実装として直接インスタンスを作成
-    from supabase import create_client
-
-    from src.env import SUPABASE_ANON_KEY, SUPABASE_URL
-
-    from ..infrastructure.supabase.repositories.user_repository_impl import UserRepositoryImpl
-
-    client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
-    user_repo = UserRepositoryImpl(client)
+    # For now, create Supabase client directly until ppcore integration is complete
+    from supabase import create_client, Client
+    from ..infrastructure.supabase.repositories.user_repository_impl import UserRepository
+    
+    client: Client = create_client(db_config.url, db_config.key)
+    user_repo = UserRepository(client)
     auth_service = await get_auth_service()
 
     return UserService(user_repo=user_repo, authentificator=auth_service)
@@ -90,19 +104,17 @@ async def get_read_users_by_role_usecase(
     return ReadUsersByRoleUseCase(user_service=user_service)
 
 
-async def get_read_active_users_usecase() -> ReadActiveUsersUseCase:
+async def get_read_active_users_usecase(
+    db_config: DatabaseConfig = Depends(get_database_config),
+) -> ReadActiveUsersUseCase:
     """Get read active users use case"""
-    # TODO: UserAggregateReadRepository の依存性注入が必要
-    # 今回は簡易実装として直接インスタンスを作成
+    # For now, create Supabase client directly until ppcore integration is complete
     from supabase import create_client
-
-    from src.env import SUPABASE_ANON_KEY, SUPABASE_URL
-
     from ..infrastructure.supabase.repositories.user_aggregate_read_repository_impl import (
         UserAggregateReadRepositoryImpl,
     )
 
-    client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+    client = create_client(db_config.url, db_config.key)
     user_aggregate_repo = UserAggregateReadRepositoryImpl(client)
 
     return ReadActiveUsersUseCase(user_aggregate_repo=user_aggregate_repo)

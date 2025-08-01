@@ -48,8 +48,9 @@ class JudgeContainer(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(
         modules=[
             "..app.services",
-            "..app.handlers",
             "..app.controllers",
+            "..event.message_queue_handlers",
+            "..event.domain_event_handlers",
         ]
     )
 
@@ -161,8 +162,9 @@ class ContainerManager:
             self.container.wire(
                 modules=[
                     "jdg.app.services",
-                    "jdg.app.handlers",
                     "jdg.app.controllers",
+                    "jdg.event.message_queue_handlers",
+                    "jdg.event.domain_event_handlers",
                 ]
             )
 

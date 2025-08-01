@@ -9,14 +9,17 @@ This package provides:
 
 import logging
 import sys
-from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
-from packaging.version import parse
+try:
+    from .const import LOGS_DIR
+except ImportError:
+    # Fallback when running directly
+    LOGS_DIR = Path(__file__).parent.parent / "app_data" / "logs"
 
-from .const import LOGS_DIR
+# Version from pyproject.toml
+__version__ = "0.2.0"
 
-__version__ = parse(version("backend"))
 __author__ = "nodashin"
 
 

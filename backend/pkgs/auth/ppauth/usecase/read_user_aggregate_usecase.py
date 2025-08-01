@@ -1,7 +1,7 @@
 from pydddi import IUseCase, IUseCaseCommand, UseCaseExecutionError
 
 from ..domain.models.user import User
-from ..domain.repositories.user_aggreate_read_repository import UserAggregateReadRepository
+from ..domain.repositories.user_aggregate_read_repository import UserAggregateReadRepository
 
 
 class ReadUserAggregateByEmailCommand(IUseCaseCommand):

@@ -7,11 +7,11 @@ import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
 
-from ....const import ExecutionStatus
+from ..value_objects.execution_status import ExecutionStatus
 from ..models import JudgeQueue
 
 
-class JudgeQueueRepository(ABC):
+class JudgeQueueRepositoryBase(ABC):
     """ジャッジキューリポジトリのインターフェース"""
 
     @abstractmethod

@@ -3,10 +3,10 @@ declare module 'react-markdown/lib/ast-to-react' {
   import { ReactNode } from 'react';
   
   export interface CodeProps {
-    node?: any;
+    node?: unknown;
     inline?: boolean;
     className?: string;
     children: ReactNode;
-    [key: string]: any;
+    [key: string]: unknown;
   }
 }

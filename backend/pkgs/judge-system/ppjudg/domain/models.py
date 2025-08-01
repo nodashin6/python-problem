@@ -7,16 +7,12 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from ...const import (
+from .protocols.judge_protocols import DomainEvent
+from .value_objects.execution_status import (
     ExecutionStatus,
-)
-from ...const import (
     JudgeResultType as JudgeResult,
-)
-from ...const import (
     ProgrammingLanguage as Language,
 )
-from ...shared.events import DomainEvent
 
 
 @dataclass

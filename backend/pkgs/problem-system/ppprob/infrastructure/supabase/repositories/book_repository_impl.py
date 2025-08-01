@@ -15,7 +15,7 @@ from src.utils import get_logger
 from ....domain.entities import BookEntity
 from ....domain.models.domain_config import DomainConfig
 from ....domain.repositories.book_repository import (
-    BookRepository,
+    BookRepositoryBase,
     CreateBookSchema,
     ReadBookSchema,
     UpdateBookSchema,
@@ -25,7 +25,7 @@ from .shared.domain_supabase_mixin import DomainSupabaseMixin
 logger = get_logger(__name__)
 
 
-class BookRepositoryImpl(DomainSupabaseMixin, BookRepository):
+class BookRepository(DomainSupabaseMixin, BookRepositoryBase):
     """Book リポジトリの Supabase 実装"""
 
     table_name = "books"

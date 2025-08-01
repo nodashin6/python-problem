@@ -1,19 +1,19 @@
-from pydoc import cli
-from typing import Annotated
-
-from fastapi import Depends
-
-from ..repositories import SupabaseRepositoryImpl
+from ..repositories import SupabaseRepository
+from ....domain.protocols.database_protocols import DatabaseConfig
 from . import _clients
 
 
 def get_supabase_repository(
-    client: Annotated[_clients.Client, Depends(_clients.get_client)],
-) -> SupabaseRepositoryImpl:
+    config: DatabaseConfig,
+) -> SupabaseRepository:
     """
     Get an instance of the Supabase repository.
+    
+    Args:
+        config: Database configuration for creating client
 
     Returns:
-        SupabaseRepositoryImpl: An instance of the Supabase repository.
+        SupabaseRepository: An instance of the Supabase repository.
     """
-    return SupabaseRepositoryImpl(client=client)  # Assuming the constructor does not require parameters
+    client = _clients.get_client(config)
+    return SupabaseRepository(supabase_client=client)

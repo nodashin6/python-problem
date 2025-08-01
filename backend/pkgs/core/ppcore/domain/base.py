@@ -1,12 +1,13 @@
 """
 Core Domain Base Classes
 コアドメイン基底クラス群 - 全パッケージで共通利用
+クリーンアーキテクチャのドメイン層基底クラス
 """
 
 from abc import ABC
 from datetime import datetime
 from typing import Any
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from pydantic import UUID4, ConfigDict, Field
 from pydantic import BaseModel as PydanticBaseModel

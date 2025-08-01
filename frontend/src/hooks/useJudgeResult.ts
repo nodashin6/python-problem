@@ -14,7 +14,7 @@ export const useJudgeResult = (judgeId: string | null, code: string, problemId: 
   const processedIdsRef = useRef<Set<string>>(new Set());
   
   // APIからのレスポンス内容をデバッグする
-  const debugResponse = useCallback((resp: any) => {
+  const debugResponse = useCallback((resp: unknown) => {
     console.log('🔍 API応答の詳細分析:', {
       status: resp.status,
       hasResults: resp.results !== undefined,

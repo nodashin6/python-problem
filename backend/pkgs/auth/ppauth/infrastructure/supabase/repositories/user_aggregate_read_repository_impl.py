@@ -7,22 +7,21 @@ from uuid import UUID
 
 from pydantic import UUID4
 
-from ppcore.domain.repositories import SupabaseRepository
-from ppcore.infrastructure.supabase.repositories import SupabaseRepositoryImpl
+from ppcore.infrastructure.supabase.repositories import SupabaseRepository
 from src.utils import get_logger
 from supabase import Client
 
 from ....domain.enums import ROLE_PERMISSIONS, UserRole
 from ....domain.models.user import User
-from ....domain.repositories.user_aggreate_read_repository import (
+from ....domain.repositories.user_aggregate_read_repository import (
     ReadAggregateUserSchema,
-    UserAggregateReadRepository,
+    UserAggregateReadRepositoryBase,
 )
 
 logger = get_logger(__name__)
 
 
-class UserAggregateReadRepositoryImpl(UserAggregateReadRepository, SupabaseRepositoryImpl):
+class UserAggregateReadRepository(UserAggregateReadRepositoryBase, SupabaseRepository):
     """User aggregate read repository implementation with Supabase"""
 
     def __init__(self, client: Client):

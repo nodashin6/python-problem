@@ -4,37 +4,23 @@ Problem Domain Model
 """
 
 from datetime import datetime
-from enum import Enum
 
-from pydantic import UUID4, Field
+from pydantic import BaseModel, UUID4, Field, ConfigDict
 
-from .base import BaseModel
-
-
-class DifficultyLevel(str, Enum):
-    """Problem difficulty levels"""
-
-    BEGINNER = "beginner"
-    EASY = "easy"
-    MEDIUM = "medium"
-    HARD = "hard"
-    EXPERT = "expert"
-
-
-class ProblemStatus(str, Enum):
-    """Problem status"""
-
-    DRAFT = "draft"
-    PUBLISHED = "published"
-    ARCHIVED = "archived"
+from ..enums import DifficultyLevel, ProblemStatus
 
 
 class Problem(BaseModel):
     """
     Problem aggregate root model
     問題集約ルート - 問題とその関連データのビジネスロジック
+    Remove pydddi dependency for cleaner architecture
     """
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True, use_enum_values=True, validate_assignment=True)
 
+    # Core fields
+    id: UUID4 = Field(...)
     title: str = Field(...)
     description: str = Field(...)
     difficulty: DifficultyLevel = Field(...)
@@ -42,6 +28,15 @@ class Problem(BaseModel):
     author_id: UUID4 = Field(...)
     book_id: UUID4 | None = Field(default=None)
     tags: list[str] = Field(default_factory=list)
+    
+    # Timestamps
+    created_at: datetime = Field(...)
+    updated_at: datetime = Field(...)
+    
+    # Optional metadata
+    problem_statement: str | None = Field(default=None, description="Detailed problem statement")
+    constraints: str | None = Field(default=None, description="Problem constraints")
+    examples: list[dict] | None = Field(default=None, description="Input/output examples")
 
     def publish(self) -> None:
         """Publish the problem"""
@@ -69,3 +64,11 @@ class Problem(BaseModel):
     def is_published(self) -> bool:
         """Check if problem is published"""
         return self.status == ProblemStatus.PUBLISHED
+        
+    def get_id(self) -> UUID4:
+        """Get problem ID"""
+        return self.id
+    
+    def to_dict(self) -> dict:
+        """Convert to dictionary"""
+        return self.model_dump()

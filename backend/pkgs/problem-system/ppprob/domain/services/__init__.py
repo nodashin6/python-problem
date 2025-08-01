@@ -1,15 +1,15 @@
 """
-Application Services
-アプリケーションサービス層
+Domain Services
+ドメインサービス層
 
 Author: Judge System Team
-Date: 2025-01-12
+Date: 2025-06-30
 """
 
-from .book_service import BookApplicationService
+from .book_service import BookService
 from .problem_service import ProblemApplicationService
 
 __all__ = [
-    "BookApplicationService",
+    "BookService",
     "ProblemApplicationService",
 ]

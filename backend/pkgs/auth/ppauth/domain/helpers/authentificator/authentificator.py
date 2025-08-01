@@ -3,22 +3,15 @@ Authentication and Authorization components
 認証・認可システム
 """
 
-import hashlib
-import logging
 import secrets
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
-import jwt
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydddi import IDomainService
-
-from src.const import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET_KEY
-from src.utils.logging import get_logger
 
 from ...enums import ROLE_PERMISSIONS, Permission, UserRole
 from ...models.user import User
+from ...protocols import Logger
 from .password_helper import PasswordManager
 from .token_helper import JWTManager
 
@@ -30,11 +23,11 @@ class Authentificator(IDomainService):
         self,
         jwt_manager: JWTManager,
         password_manager: PasswordManager,
-        logger: logging.Logger | None = None,
+        logger: Logger,
     ):
         self.jwt_manager = jwt_manager
         self.password_manager = password_manager
-        self.logger = logger or get_logger(__name__)
+        self.logger = logger
 
     def create_user(
         self, user_id: str, email: str, user_name: str, display_name: str, role: UserRole
@@ -98,7 +91,11 @@ class Authentificator(IDomainService):
     def get_user_from_token(self, token: str) -> User | None:
         """Get user from JWT token"""
         try:
-            payload = self.jwt_manager.verify_token(token)
+            jwt_token = self.jwt_manager.verify_token(token)
+            if not jwt_token:
+                return None
+                
+            payload = jwt_token.claims.to_dict()
             if not payload:
                 return None
 
@@ -190,8 +187,11 @@ def require_authentication(func):
         if not token:
             raise PermissionError("Authentication required")
 
-        jwt_manager = JWTManager()
-        user = jwt_manager.verify_token(token)
+        # TODO: Implement with proper dependency injection
+        # jwt_manager = get_jwt_manager()
+        # jwt_token = jwt_manager.verify_token(token)
+        # user = jwt_token.claims if jwt_token else None
+        user = None
         if not user:
             raise PermissionError("Invalid or expired token")
 
@@ -241,12 +241,4 @@ def require_role(role: UserRole):
     return decorator
 
 
-# グローバルインスタンス
-logger = get_logger(__name__)
-jwt_manager = JWTManager(logger=logger)
-password_manager = PasswordManager(logger=logger)
-auth_service = Authentificator(
-    jwt_manager=jwt_manager,
-    password_manager=password_manager,
-    logger=logger,
-)
+# グローバルインスタンスは削除 - 依存性注入を使用する

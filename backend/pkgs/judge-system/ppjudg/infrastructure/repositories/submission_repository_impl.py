@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import List, Optional, Dict, Any
 
 from supabase import Client
-from ...domain.repositories.submission_repository import SubmissionRepository
+from ...domain.repositories.submission_repository import SubmissionRepositoryBase
 from ...domain.models import Submission, ExecutionResult, JudgeCaseResult
 from ....const import (
     ProgrammingLanguage as Language,
@@ -21,7 +21,7 @@ from ....const import (
 logger = logging.getLogger(__name__)
 
 
-class SubmissionRepositoryImpl(SubmissionRepository):
+class SubmissionRepository(SubmissionRepositoryBase):
     """Supabaseを使った提出リポジトリの実装"""
 
     def __init__(self, supabase_client: Client):

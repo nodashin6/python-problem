@@ -11,7 +11,7 @@ from ..enums import UserRole
 from ..schemas import CreateUserSchema, ReadUserSchema, UpdateUserSchema
 
 
-class UserRepository(ICrudRepository[UserEntity, CreateUserSchema, ReadUserSchema, UpdateUserSchema]):
+class UserRepositoryBase(ICrudRepository[UserEntity, CreateUserSchema, ReadUserSchema, UpdateUserSchema]):
     """統合されたUser repository - User + UserRole を一体として管理"""
 
     @abstractmethod
@@ -80,3 +80,7 @@ class UserRepository(ICrudRepository[UserEntity, CreateUserSchema, ReadUserSchem
     @abstractmethod
     async def get_user_role(self, user_id: UUID) -> UserRole | None:
         """Get current user role"""
+
+
+# Alias for backward compatibility
+UserRepository = UserRepositoryBase

@@ -1,22 +1,26 @@
 """
-Base Model for Core Domain
-コアドメイン基底モデル
+Base Model for Core Domain (DEPRECATED)
+コアドメイン基底モデル - Deprecated: Use ppcore.domain.base.BaseModel instead
 """
 
 from abc import ABC
 from datetime import datetime
 from typing import Any
-from uuid import UUID
 
 from pydantic import UUID4, ConfigDict, Field
 from pydantic import BaseModel as PydanticBaseModel
-from pydddi import IModel
+
+# This class is deprecated in favor of ppcore.domain.base.BaseModel
+# Remove pydddi dependency to avoid external framework coupling
 
 
-class BaseModel(IModel, ABC):
+class BaseModel(PydanticBaseModel, ABC):
     """
-    Core domain base model
+    Core domain base model (DEPRECATED)
     DDDのModelクラス - ビジネスロジックを含む集約ルート
+    
+    WARNING: This class is deprecated. Use ppcore.domain.base.BaseModel instead.
+    This maintains backward compatibility but should be migrated.
     """
 
     id: UUID4 = Field(...)

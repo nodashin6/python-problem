@@ -4,8 +4,8 @@ from ._clients import (
     get_client,
 )
 from ._repositories import (
-    UserAggregateReadRepositoryImpl,
-    UserRepositoryImpl,
+    UserAggregateReadRepository,
+    UserRepository,
     get_user_aggregate_read_repository,
     get_user_repository,
 )

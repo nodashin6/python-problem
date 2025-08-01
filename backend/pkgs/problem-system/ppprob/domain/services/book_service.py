@@ -3,13 +3,13 @@ from uuid import UUID
 from pydddi import IDomainService
 
 from ...domain.entities import BookEntity
-from ...domain.repositories.book_repository import BookRepository
+from ...domain.repositories.book_repository import BookRepositoryBase
 
 
 class BookService(IDomainService):
     """BookApplicationService - 問題集アプリケーションサービス"""
 
-    def __init__(self, book_repository: BookRepository):
+    def __init__(self, book_repository: BookRepositoryBase):
         self._book_repository = book_repository
 
     async def get_published_books(self) -> list[BookEntity]:

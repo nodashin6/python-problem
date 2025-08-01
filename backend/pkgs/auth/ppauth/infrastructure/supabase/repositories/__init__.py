@@ -1,7 +1,7 @@
-from .user_aggregate_read_repository_impl import UserAggregateReadRepositoryImpl
-from .user_repository_impl import UserRepositoryImpl
+from .user_aggregate_read_repository_impl import UserAggregateReadRepository
+from .user_repository_impl import UserRepository
 
 __all__ = [
-    "UserRepositoryImpl",
-    "UserAggregateReadRepositoryImpl",
+    "UserRepository",
+    "UserAggregateReadRepository",
 ]

@@ -16,7 +16,7 @@ from ....domain.entities import ProblemEntity
 from ....domain.models.domain_config import DomainConfig
 from ....domain.repositories.problem_repository import (
     CreateProblemSchema,
-    ProblemRepository,
+    ProblemRepositoryBase,
     ReadProblemSchema,
     UpdateProblemSchema,
 )
@@ -25,7 +25,7 @@ from .shared.domain_supabase_mixin import DomainSupabaseMixin
 logger = get_logger(__name__)
 
 
-class ProblemRepositoryImpl(DomainSupabaseMixin, ProblemRepository):
+class ProblemRepository(DomainSupabaseMixin, ProblemRepositoryBase):
     """Problem リポジトリの Supabase 実装"""
 
     table_name = "problem_headers"

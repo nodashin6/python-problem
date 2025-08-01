@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React from 'react';
 
 interface CodeSubmissionFormProps {
   code: string;
@@ -38,7 +37,10 @@ export const CodeSubmissionForm: React.FC<CodeSubmissionFormProps> = ({
       <button
         type="submit"
         disabled={submitting}
-        className={submitting ? "btn-secondary opacity-70 cursor-not-allowed" : "btn-primary"}
+        className={submitting 
+          ? "inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-indigo-600 bg-white border border-indigo-200 rounded-xl opacity-70 cursor-not-allowed" 
+          : "inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl hover:shadow-lg hover:shadow-indigo-500/25 transform hover:-translate-y-0.5 focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
+        }
       >
         {submitting ? (
           <span className="flex items-center">

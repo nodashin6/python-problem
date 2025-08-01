@@ -56,7 +56,7 @@ export const TestResultDrawer = ({ isOpen, onClose, result }: TestResultDrawerPr
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex justify-end">
-      <div 
+      <div
         ref={drawerRef}
         className={`w-full max-w-md ${statusColor} h-full shadow-xl p-6 overflow-auto transform transition-transform duration-300 ease-in-out`}
         style={{ transform: isOpen ? 'translateX(0)' : 'translateX(100%)' }}
@@ -66,7 +66,7 @@ export const TestResultDrawer = ({ isOpen, onClose, result }: TestResultDrawerPr
           <h3 className="text-xl font-bold">
             テストケース{result?.judge_case.id ? ` ${result.judge_case.id}` : ''}の結果
           </h3>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 rounded-full hover:bg-gray-200 transition-colors"
           >
@@ -89,7 +89,7 @@ export const TestResultDrawer = ({ isOpen, onClose, result }: TestResultDrawerPr
                 </span>
               )}
             </div>
-            
+
             {/* 入力 */}
             <div>
               <h4 className="font-semibold text-gray-700 mb-1">入力:</h4>
@@ -97,7 +97,7 @@ export const TestResultDrawer = ({ isOpen, onClose, result }: TestResultDrawerPr
                 {result.judge_case.stdin.content}
               </pre>
             </div>
-            
+
             {/* 期待される出力 */}
             <div>
               <h4 className="font-semibold text-gray-700 mb-1">期待される出力:</h4>
@@ -105,7 +105,7 @@ export const TestResultDrawer = ({ isOpen, onClose, result }: TestResultDrawerPr
                 {result.judge_case.stdout.content}
               </pre>
             </div>
-            
+
             {/* 実際の出力 */}
             <div>
               <h4 className="font-semibold text-gray-700 mb-1">あなたの出力:</h4>
@@ -113,7 +113,7 @@ export const TestResultDrawer = ({ isOpen, onClose, result }: TestResultDrawerPr
                 {result.metadata.output || '(出力なし)'}
               </pre>
             </div>
-            
+
             {/* エラーメッセージ(存在する場合) */}
             {(result.metadata.runtime_error || result.metadata.compile_error) && (
               <div>
@@ -126,7 +126,7 @@ export const TestResultDrawer = ({ isOpen, onClose, result }: TestResultDrawerPr
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-64">
-            <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-8 h-8 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 14h.01M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2z" />
             </svg>
             <p className="text-gray-500 mt-4">テストケースが選択されていません</p>

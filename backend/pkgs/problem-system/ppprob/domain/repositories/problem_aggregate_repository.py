@@ -19,6 +19,6 @@ class ProblemReadAggregateSchema(IReadAggregateSchema):
     content_updated_at: str | None = None
 
 
-class ProblemAggregateRepository(
+class ProblemAggregateRepositoryBase(
     IReadAggregateRepository[Problem, ProblemReadAggregateSchema], HasDomainRepository
 ): ...

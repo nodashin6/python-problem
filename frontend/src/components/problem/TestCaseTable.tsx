@@ -22,9 +22,9 @@ export const JudgeCaseTable: React.FC<JudgeCaseTableProps> = ({
   selectedJudgeCaseId
 }) => {
   // 各テストケースの状態を保持する内部ステート
-  const [JudgeCaseState, setJudgeCaseState] = useState<Record<string, any>>({});
+  const [JudgeCaseState, setJudgeCaseState] = useState<Record<string, unknown>>({});
   // UI表示用のテストケース配列
-  const [displayJudgeCases, setDisplayJudgeCases] = useState<any[]>([]);
+  const [displayJudgeCases, setDisplayJudgeCases] = useState<unknown[]>([]);
   
   // デバッグ強化: 受け取ったpropsを詳しく表示
   useEffect(() => {
@@ -70,10 +70,10 @@ export const JudgeCaseTable: React.FC<JudgeCaseTableProps> = ({
           return {
             id,
             name: id,
-            status: stateInfo.status === 'completed'
-              ? (stateInfo.result?.status || 'unknown')
-              : stateInfo.status,
-            time: stateInfo.result?.time_used,
+            status: (stateInfo as any).status === 'completed'
+              ? ((stateInfo as any).result?.status || 'unknown')
+              : (stateInfo as any).status,
+            time: (stateInfo as any).result?.time_used,
             result: null
           };
         }
@@ -136,7 +136,7 @@ export const JudgeCaseTable: React.FC<JudgeCaseTableProps> = ({
       console.log("🔄 更新するテストケース状態:", newState);
       setJudgeCaseState(newState);
     }
-  }, [allResults]); // JudgeCaseStateへの依存を削除して、常に最新の結果を反映するように
+  }, [allResults, JudgeCaseState]); // 明示的に依存関係を指定
 
   // テストケース行がクリックされたときの処理
   const handleRowClick = (JudgeCaseId: string) => {
@@ -160,7 +160,7 @@ export const JudgeCaseTable: React.FC<JudgeCaseTableProps> = ({
       const initialState = JudgeCaseList.reduce((acc, id) => {
         acc[id] = { status: 'pending' };
         return acc;
-      }, {} as Record<string, any>);
+      }, {} as Record<string, unknown>);
       setJudgeCaseState(initialState);
     }
   }, [submitting, JudgeCaseList]);

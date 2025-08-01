@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
 import Link from 'next/link';
 import { MathMarkdown } from './MathMarkdown';
 

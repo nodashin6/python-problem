@@ -10,7 +10,7 @@ from src.utils import get_logger
 from ....domain.models import Problem
 from ....domain.models.domain_config import DomainConfig
 from ....domain.repositories.problem_aggregate_repository import (
-    ProblemAggregateRepository,
+    ProblemAggregateRepositoryBase,
     ProblemReadAggregateSchema,
 )
 from .shared.domain_supabase_mixin import DomainSupabaseMixin
@@ -18,7 +18,7 @@ from .shared.domain_supabase_mixin import DomainSupabaseMixin
 logger = get_logger(__name__)
 
 
-class ProblemAggregateRepositoryImpl(DomainSupabaseMixin, ProblemAggregateRepository):
+class ProblemAggregateRepository(DomainSupabaseMixin, ProblemAggregateRepositoryBase):
     """Problem 集約リポジトリの Supabase 実装"""
 
     def __init__(self, client: Client, config: DomainConfig):

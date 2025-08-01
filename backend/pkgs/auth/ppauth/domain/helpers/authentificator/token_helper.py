@@ -3,18 +3,12 @@ Authentication and Authorization components
 認証・認可システム
 """
 
-import hashlib
-import logging
-import secrets
 from datetime import datetime, timedelta
-from typing import Any
-
-import jwt
-
-from src.const import JWT_ALGORITHM, JWT_EXPIRE_MINUTES, JWT_SECRET_KEY
-from src.utils.logging import get_logger
+from typing import Optional
 
 from ...models.user import User
+from ...protocols import JWTEncoder, Logger
+from ...value_objects.jwt_token import JWTClaims, JWTToken
 
 
 class JWTManager:
@@ -22,55 +16,83 @@ class JWTManager:
 
     def __init__(
         self,
-        secret_key: str = JWT_SECRET_KEY,
-        algorithm: str = JWT_ALGORITHM,
-        logger: logging.Logger | None = None,
+        jwt_encoder: JWTEncoder,
+        logger: Logger,
+        token_expire_minutes: int = 60 * 24,  # 24 hours
     ):
-        self.secret_key = secret_key
-        self.algorithm = algorithm
-        self.logger = logger or get_logger(__name__)
+        self.jwt_encoder = jwt_encoder
+        self.logger = logger
+        self.token_expire_minutes = token_expire_minutes
 
-    def create_token(self, user: User, expires_delta: timedelta | None = None) -> str:
-        """JWTトークンを作成"""
+    def create_token(self, user: User) -> str:
+        """JWTトークンを作成 - ドメインロジック"""
         try:
-            if expires_delta is None:
-                expires_delta = timedelta(minutes=JWT_EXPIRE_MINUTES)
-            payload = user.to_jwt_claims(expires_delta)
-            token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
-            self.logger.debug(f"JWT token created for user: {user.id}")
-            return token
+            # ドメインロジック: トークンの有効期限とクレーム生成
+            now = datetime.now()
+            expires_at = now + timedelta(minutes=self.token_expire_minutes)
+            
+            claims = JWTClaims(
+                user_id=str(user.id),
+                email=user.email,
+                user_name=user.user_name,
+                display_name=user.display_name,
+                role=user.role.value,
+                iat=now,
+                exp=expires_at,
+            )
+            
+            # 具体的なエンコーディングはインフラ層に委謗
+            raw_token = self.jwt_encoder.encode_claims(claims)
+            
+            self.logger.info(f"JWT token created for user: {user.id}")
+            return raw_token
+            
         except Exception as e:
             self.logger.error(f"Failed to create JWT token: {e}")
             raise
 
-    def verify_token(self, token: str) -> User | None:
-        """JWTトークンを検証"""
+    def verify_token(self, token: str) -> Optional[JWTToken]:
+        """JWTトークンを検証 - ドメインロジック"""
         try:
-            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
-            user = User.from_jwt_claims(payload)
-
-            # 有効期限チェック
-            if user.exp and datetime.now() > user.exp:
-                self.logger.warning(f"Expired token for user: {user.id}")
+            # 具体的なデコーディングはインフラ層に委謗
+            claims = self.jwt_encoder.decode_token(token)
+            if not claims:
+                self.logger.warning("Invalid token: could not decode")
                 return None
-
-            return user
-        except jwt.ExpiredSignatureError:
-            self.logger.warning("Token has expired")
-            return None
-        except jwt.InvalidTokenError as e:
-            self.logger.warning(f"Invalid token: {e}")
-            return None
+            
+            # ドメインロジック: 有効期限チェック
+            if claims.is_expired():
+                self.logger.warning(f"Token expired for user: {claims.user_id}")
+                return None
+            
+            jwt_token = JWTToken(
+                raw_token=token,
+                claims=claims,
+            )
+            
+            return jwt_token
+            
         except Exception as e:
             self.logger.error(f"Token verification error: {e}")
             return None
 
-    def refresh_token(self, token: str) -> str | None:
-        """トークンをリフレッシュ"""
-        user = self.verify_token(token)
-        if not user:
-            return None
-
-        # 新しい有効期限でトークンを再作成
-        expires_delta = timedelta(minutes=JWT_EXPIRE_MINUTES)
-        return self.create_token(user, expires_delta)
+    def create_token_for_user(self, user: User) -> JWTToken:
+        """ユーザー用JWTトークンを作成"""
+        raw_token = self.create_token(user)
+        claims = self.jwt_encoder.decode_token(raw_token)
+        
+        if not claims:
+            raise ValueError("Failed to create valid token")
+            
+        return JWTToken(
+            raw_token=raw_token,
+            claims=claims,
+        )
+    
+    def refresh_token(self, current_token: JWTToken, user: User) -> JWTToken:
+        """トークンをリフレッシュ - ドメインロジック"""
+        if not current_token.is_valid():
+            raise ValueError("Cannot refresh expired token")
+        
+        # 新しいトークンを作成
+        return self.create_token_for_user(user)

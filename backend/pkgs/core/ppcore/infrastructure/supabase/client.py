@@ -1,14 +1,11 @@
 from supabase import Client
 from supabase import create_client as __create_client
 
-from src.env import EnvSettings
+from ...domain.protocols.database_protocols import DatabaseConfig
 
 
-def create_client() -> Client:
+def create_client(config: DatabaseConfig) -> Client:
     """
     Supabaseクライアントを作成する関数
     """
-    env = EnvSettings()
-    url: str = env.supabase_url
-    key: str = env.supabase_anon_key
-    return __create_client(url, key)
+    return __create_client(config.url, config.key)

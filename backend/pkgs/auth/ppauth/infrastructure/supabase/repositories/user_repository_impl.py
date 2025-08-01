@@ -7,23 +7,21 @@ from datetime import datetime
 from typing import Any, Optional
 from uuid import UUID
 
-from ppcore.domain.repositories import SupabaseRepository
-from ppcore.infrastructure.supabase.repositories import SupabaseRepositoryImpl
-from src.utils import get_logger
-from supabase import Client
+from ppcore.domain.repositories import DatabaseRepositoryBase
+from ppcore.infrastructure.supabase.repositories import SupabaseRepository
+
+from ....domain.protocols import Logger
 
 from ....domain.entities.user import RoleEntity, UserEntity
-from ....domain.repositories.user_repository import UserRepository
+from ....domain.repositories.user_repository import UserRepositoryBase
 from ....domain.schemas.user_schemas import CreateUserSchema, ReadUserSchema, UpdateUserSchema
 
-logger = get_logger(__name__)
-
-
-class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
+class UserRepository(UserRepositoryBase, SupabaseRepository):
     """User repository implementation with Supabase - Unified User + UserRole management"""
 
-    def __init__(self, client: Client):
-        super().__init__(client)
+    def __init__(self, supabase_client, logger: Optional[Logger] = None):
+        super().__init__(supabase_client)
+        self.logger = logger
         self.users_table = "users"
         self.user_roles_table = "user_roles"
 
@@ -41,7 +39,7 @@ class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
             }
 
             # Create user
-            user_result = self.client.table(self.users_table).insert(user_data).execute()
+            user_result = self.supabase_client.table(self.users_table).insert(user_data).execute()
 
             if not user_result.data:
                 raise Exception("Failed to create user")
@@ -55,18 +53,19 @@ class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
                 "role": schema.role.value,
             }
 
-            role_result = self.client.table(self.user_roles_table).insert(role_data).execute()
+            role_result = self.supabase_client.table(self.user_roles_table).insert(role_data).execute()
 
             if not role_result.data:
                 # Rollback: delete the user
-                self.client.table(self.users_table).delete().eq("id", user_id).execute()
+                self.supabase_client.table(self.users_table).delete().eq("id", user_id).execute()
                 raise Exception("Failed to create user role")
 
             # Convert to entity with role
             return self._to_entity_with_role(user_row, role_result.data[0])
 
         except Exception as e:
-            logger.error(f"Failed to create user with role: {e}")
+            if self.logger:
+                self.logger.error(f"Failed to create user with role: {e}")
             raise
 
     async def update_user_with_role(self, user_id: UUID, schema: UpdateUserSchema) -> UserEntity | None:
@@ -95,7 +94,7 @@ class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
             user_result = None
             if user_data:
                 user_result = (
-                    self.client.table(self.users_table).update(user_data).eq("id", str(user_id)).execute()
+                    self.supabase_client.table(self.users_table).update(user_data).eq("id", str(user_id)).execute()
                 )
                 if not user_result.data:
                     return None
@@ -108,7 +107,7 @@ class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
                     "updated_at": datetime.now().isoformat(),
                 }
                 role_result = (
-                    self.client.table(self.user_roles_table)
+                    self.supabase_client.table(self.user_roles_table)
                     .update(role_update_data)
                     .eq("user_id", str(user_id))
                     .execute()
@@ -118,7 +117,8 @@ class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
             return await self.find_by_id_with_role(user_id)
 
         except Exception as e:
-            logger.error(f"Failed to update user with role {user_id}: {e}")
+            if self.logger:
+                self.logger.error(f"Failed to update user with role {user_id}: {e}")
             raise
 
     async def find_by_email(self, email: str) -> UserEntity | None:
@@ -129,7 +129,7 @@ class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
                 user_roles(*)
             """
 
-            result = self.client.table(self.users_table).select(query).eq("email", email).single().execute()
+            result = self.supabase_client.table(self.users_table).select(query).eq("email", email).single().execute()
 
             if result.data:
                 user_row = result.data
@@ -138,7 +138,8 @@ class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
             return None
 
         except Exception as e:
-            logger.error(f"Failed to find user by email {email}: {e}")
+            if self.logger:
+                self.logger.error(f"Failed to find user by email {email}: {e}")
             return None
 
     async def find_by_user_name(self, user_name: str) -> UserEntity | None:
@@ -150,7 +151,7 @@ class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
             """
 
             result = (
-                self.client.table(self.users_table)
+                self.supabase_client.table(self.users_table)
                 .select(query)
                 .eq("user_name", user_name)
                 .single()
@@ -164,7 +165,8 @@ class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
             return None
 
         except Exception as e:
-            logger.error(f"Failed to find user by user_name {user_name}: {e}")
+            if self.logger:
+                self.logger.error(f"Failed to find user by user_name {user_name}: {e}")
             return None
 
     async def find_by_id_with_role(self, user_id: UUID) -> UserEntity | None:
@@ -176,7 +178,7 @@ class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
             """
 
             result = (
-                self.client.table(self.users_table).select(query).eq("id", str(user_id)).single().execute()
+                self.supabase_client.table(self.users_table).select(query).eq("id", str(user_id)).single().execute()
             )
 
             if result.data:
@@ -186,7 +188,8 @@ class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
             return None
 
         except Exception as e:
-            logger.error(f"Failed to find user by ID {user_id}: {e}")
+            if self.logger:
+                self.logger.error(f"Failed to find user by ID {user_id}: {e}")
             return None
 
     async def list_active_users(self, limit: int = 100, offset: int = 0) -> list[UserEntity]:
@@ -198,7 +201,7 @@ class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
             """
 
             result = (
-                self.client.table(self.users_table)
+                self.supabase_client.table(self.users_table)
                 .select(query)
                 .eq("is_active", True)
                 .range(offset, offset + limit - 1)
@@ -214,7 +217,8 @@ class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
             return users
 
         except Exception as e:
-            logger.error(f"Failed to list active users: {e}")
+            if self.logger:
+                self.logger.error(f"Failed to list active users: {e}")
             raise
 
     def _to_entity_with_role(self, user_row: dict[str, Any], role_row: dict[str, Any] | None) -> UserEntity:
@@ -283,14 +287,15 @@ class UserRepositoryImpl(UserRepository, SupabaseRepositoryImpl):
         """Delete user and associated role"""
         try:
             # Delete user role first
-            self.client.table(self.user_roles_table).delete().eq("user_id", str(entity_id)).execute()
+            self.supabase_client.table(self.user_roles_table).delete().eq("user_id", str(entity_id)).execute()
 
             # Delete user
-            result = self.client.table(self.users_table).delete().eq("id", str(entity_id)).execute()
+            result = self.supabase_client.table(self.users_table).delete().eq("id", str(entity_id)).execute()
             return len(result.data) > 0
 
         except Exception as e:
-            logger.error(f"Failed to delete user {entity_id}: {e}")
+            if self.logger:
+                self.logger.error(f"Failed to delete user {entity_id}: {e}")
             raise
 
     async def list(self, limit: int | None = None, offset: int | None = None) -> list[UserEntity]:

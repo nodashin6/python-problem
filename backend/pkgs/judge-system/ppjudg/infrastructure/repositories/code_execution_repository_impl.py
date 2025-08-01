@@ -13,12 +13,12 @@ from supabase import Client
 from ....const import ExecutionStatus
 from ....const import ProgrammingLanguage as Language
 from ...domain.models import CodeExecution, ExecutionResult
-from ...domain.repositories.code_execution_repository import CodeExecutionRepository
+from ...domain.repositories.code_execution_repository import CodeExecutionRepositoryBase
 
 logger = logging.getLogger(__name__)
 
 
-class CodeExecutionRepositoryImpl(CodeExecutionRepository):
+class CodeExecutionRepository(CodeExecutionRepositoryBase):
     """Supabaseを使ったコード実行リポジトリの実装"""
 
     def __init__(self, supabase_client: Client):

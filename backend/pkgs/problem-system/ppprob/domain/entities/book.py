@@ -4,11 +4,10 @@ Book Entity
 """
 
 from pydantic import UUID4, Field
+from pydddi import IEntity
 
-from .base import BaseEntity
 
-
-class BookEntity(BaseEntity):
+class BookEntity(IEntity[UUID4]):
     """
     Book entity for persistence
     書籍エンティティ - データベース永続化用

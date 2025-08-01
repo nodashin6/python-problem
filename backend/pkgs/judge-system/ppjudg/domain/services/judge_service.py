@@ -8,18 +8,13 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from ....const import (
+from ..protocols.judge_protocols import EventBus, Logger
+from ..value_objects.execution_status import (
     ExecutionStatus,
-)
-from ....const import (
     JudgeResultType as JudgeResult,
-)
-from ....const import (
     ProgrammingLanguage as Language,
 )
-from ....core.domain.repositories import JudgeCaseRepository
-from ....shared.events import EventBus
-from ....shared.logging import get_logger
+from ppcore.domain.client_protocols import DBClient
 from ..models import (
     CodeExecution,
     ExecutionResult,
@@ -28,12 +23,12 @@ from ..models import (
     Submission,
 )
 from ..repositories import (
-    CodeExecutionRepository,
-    JudgeQueueRepository,
-    SubmissionRepository,
+    CodeExecutionRepositoryBase,
+    JudgeQueueRepositoryBase,
+    SubmissionRepositoryBase,
 )
 
-logger = get_logger(__name__)
+# Logger will be injected via dependency injection
 
 
 class JudgeDomainService:
@@ -41,17 +36,19 @@ class JudgeDomainService:
 
     def __init__(
         self,
-        submission_repo: SubmissionRepository,
-        execution_repo: CodeExecutionRepository,
-        queue_repo: JudgeQueueRepository,
-        judge_case_repo: JudgeCaseRepository,
+        submission_repo: SubmissionRepositoryBase,
+        execution_repo: CodeExecutionRepositoryBase,
+        queue_repo: JudgeQueueRepositoryBase,
+        db_client: DBClient,  # Instead of direct repository dependency
         event_bus: EventBus,
+        logger: Logger,
     ):
         self.submission_repo = submission_repo
         self.execution_repo = execution_repo
         self.queue_repo = queue_repo
-        self.judge_case_repo = judge_case_repo
+        self.db_client = db_client
         self.event_bus = event_bus
+        self.logger = logger
 
     async def submit_code(
         self, user_id: uuid.UUID, problem_id: uuid.UUID, code: str, language: Language
@@ -97,11 +94,11 @@ class JudgeDomainService:
             )
             await self.event_bus.publish(event)
 
-            logger.info(f"Code submitted: {submission.id} by user {user_id}")
+            self.self.logger.info(f"Code submitted: {submission.id} by user {user_id}")
             return submission
 
         except Exception as e:
-            logger.error(f"Failed to submit code: {e}")
+            self.logger.error(f"Failed to submit code: {e}")
             raise
 
     async def judge_submission(self, submission_id: uuid.UUID) -> bool:
@@ -177,7 +174,7 @@ class JudgeDomainService:
                         break
 
                 except Exception as e:
-                    logger.error(f"Error judging case {judge_case.id}: {e}")
+                    self.logger.error(f"Error judging case {judge_case.id}: {e}")
                     # エラーケース結果を追加
                     error_result = ExecutionResult(
                         status=ExecutionStatus.FAILED, error=str(e)
@@ -210,13 +207,13 @@ class JudgeDomainService:
             )
             await self.event_bus.publish(event)
 
-            logger.info(
+            self.logger.info(
                 f"Submission judged: {submission.id} - {submission.overall_result}"
             )
             return True
 
         except Exception as e:
-            logger.error(f"Failed to judge submission {submission_id}: {e}")
+            self.logger.error(f"Failed to judge submission {submission_id}: {e}")
             # エラー状態に更新
             if submission:
                 submission.status = ExecutionStatus.FAILED
@@ -274,11 +271,11 @@ class JudgeDomainService:
             )
             await self.event_bus.publish(event)
 
-            logger.info(f"Code executed: {execution.id} - {execution_result.status}")
+            self.logger.info(f"Code executed: {execution.id} - {execution_result.status}")
             return execution
 
         except Exception as e:
-            logger.error(f"Failed to execute code: {e}")
+            self.logger.error(f"Failed to execute code: {e}")
             raise
 
     async def get_user_submissions(
@@ -298,7 +295,7 @@ class JudgeDomainService:
                 return await self.submission_repo.find_by_user(user_id, limit, offset)
 
         except Exception as e:
-            logger.error(f"Failed to get user submissions for {user_id}: {e}")
+            self.logger.error(f"Failed to get user submissions for {user_id}: {e}")
             return []
 
     async def get_submission_statistics(self, user_id: uuid.UUID) -> dict[str, Any]:
@@ -308,7 +305,7 @@ class JudgeDomainService:
             return stats
 
         except Exception as e:
-            logger.error(f"Failed to get submission statistics for {user_id}: {e}")
+            self.logger.error(f"Failed to get submission statistics for {user_id}: {e}")
             return {}
 
     async def get_judge_queue_status(self) -> dict[str, Any]:
@@ -318,7 +315,7 @@ class JudgeDomainService:
             return stats
 
         except Exception as e:
-            logger.error(f"Failed to get judge queue status: {e}")
+            self.logger.error(f"Failed to get judge queue status: {e}")
             return {}
 
     def _calculate_priority(self, user_id: uuid.UUID, problem_id: uuid.UUID) -> int:

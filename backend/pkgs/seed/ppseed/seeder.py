@@ -8,8 +8,7 @@ import logging
 
 from supabase import Client, create_client
 
-from src.env import SUPABASE_SERVICE_KEY, SUPABASE_URL
-from src.seed.sample_data import get_all_sample_data
+from .sample_data import get_all_sample_data
 
 logger = logging.getLogger(__name__)
 
@@ -17,9 +16,16 @@ logger = logging.getLogger(__name__)
 class DatabaseSeeder:
     """データベースにテストデータを投入するクラス"""
 
-    def __init__(self):
+    def __init__(self, supabase_url: str = None, supabase_key: str = None):
         """Supabaseクライアントを初期化"""
-        self.supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+        if supabase_url and supabase_key:
+            self.supabase: Client = create_client(supabase_url, supabase_key)
+        else:
+            try:
+                from src.env import SUPABASE_SERVICE_KEY, SUPABASE_URL
+                self.supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+            except ImportError:
+                raise ImportError("Either provide supabase_url and supabase_key parameters or ensure src.env module is available")
 
     async def seed_all(self, clear_existing: bool = False) -> bool:
         """すべてのテストデータを投入"""

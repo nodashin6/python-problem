@@ -3,13 +3,13 @@ from uuid import UUID
 from pydddi import IDomainService
 
 from ...domain.entities import ProblemEntity
-from ...domain.repositories.problem_repository import ProblemRepository
+from ...domain.repositories.problem_repository import ProblemRepositoryBase
 
 
 class ProblemApplicationService:
     """ProblemApplicationService - 問題アプリケーションサービス"""
 
-    def __init__(self, problem_repository: ProblemRepository):
+    def __init__(self, problem_repository: ProblemRepositoryBase):
         self._problem_repository = problem_repository
 
     async def get_published_problems(self) -> list[ProblemEntity]:

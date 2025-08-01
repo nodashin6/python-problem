@@ -1,5 +1,11 @@
-from .supabase_repository import SupabaseRepositoryImpl
+"""
+Supabase Infrastructure Repositories
+Supabaseインフラストラクチャリポジトリ群
+"""
+
+from .supabase_repository import SupabaseDBClientImpl, SupabaseRepository
 
 __all__ = [
-    "SupabaseRepositoryImpl",
+    "SupabaseRepository",
+    "SupabaseDBClientImpl",
 ]

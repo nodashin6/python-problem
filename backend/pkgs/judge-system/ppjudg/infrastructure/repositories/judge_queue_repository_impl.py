@@ -12,12 +12,12 @@ from supabase import Client
 
 from ....const import ExecutionStatus
 from ...domain.models import JudgeQueue
-from ...domain.repositories.judge_queue_repository import JudgeQueueRepository
+from ...domain.repositories.judge_queue_repository import JudgeQueueRepositoryBase
 
 logger = logging.getLogger(__name__)
 
 
-class JudgeQueueRepositoryImpl(JudgeQueueRepository):
+class JudgeQueueRepository(JudgeQueueRepositoryBase):
     """Supabaseを使ったジャッジキューリポジトリの実装"""
 
     def __init__(self, supabase_client: Client):

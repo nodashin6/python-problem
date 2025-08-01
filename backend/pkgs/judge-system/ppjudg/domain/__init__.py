@@ -25,9 +25,9 @@ from .services import JudgeDomainService
 
 # Repository Interfaces
 from .repositories import (
-    SubmissionRepository,
-    CodeExecutionRepository,
-    JudgeQueueRepository,
+    SubmissionRepositoryBase,
+    CodeExecutionRepositoryBase,
+    JudgeQueueRepositoryBase,
 )
 
 __all__ = [
@@ -49,7 +49,7 @@ __all__ = [
     # Services
     "JudgeDomainService",
     # Repository Interfaces
-    "SubmissionRepository",
-    "CodeExecutionRepository",
-    "JudgeQueueRepository",
+    "SubmissionRepositoryBase",
+    "CodeExecutionRepositoryBase",
+    "JudgeQueueRepositoryBase",
 ]

@@ -3,6 +3,5 @@ from ._clients import (
     get_client,
 )
 from ._repositories import (
-    SupabaseRepositoryImpl,
     get_supabase_repository,
 )

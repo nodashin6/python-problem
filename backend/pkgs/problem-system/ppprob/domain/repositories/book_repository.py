@@ -41,7 +41,7 @@ class UpdateBookSchema(IUpdateSchema):
     created_at: str | None = None
 
 
-class BookRepository(
+class BookRepositoryBase(
     ICrudRepository[BookEntity, CreateBookSchema, ReadBookSchema, UpdateBookSchema],
     HasDomainRepository,
 ):

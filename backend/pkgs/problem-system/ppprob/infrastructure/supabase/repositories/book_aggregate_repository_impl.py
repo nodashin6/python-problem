@@ -5,40 +5,36 @@ Book Aggregate Repository implementation with Supabase
 
 from supabase import Client
 
-from ppauth.domain.entities import UserEntity
-from ppauth.infrastructure.supabase.repositories.user_repository_impl import (
-    ReadUserSchema,
-    UserRepositoryImpl,
-)
-from src.utils import get_logger
-
 from ....domain.models import Book
 from ....domain.models.domain_config import DomainConfig
+from ....domain.protocols.logger_protocols import Logger
 from ....domain.repositories.book_aggregate_repository import (
-    BookAggregateRepository,
+    BookAggregateRepositoryBase,
     BookReadAggregateSchema,
 )
+from ....domain.value_objects.author_info import AuthorInfo
 from .shared.domain_supabase_mixin import DomainSupabaseMixin
 
-logger = get_logger(__name__)
 
-
-class BookAggregateRepositoryImpl(DomainSupabaseMixin, BookAggregateRepository):
+class BookAggregateRepository(DomainSupabaseMixin, BookAggregateRepositoryBase):
     """Book 集約リポジトリの Supabase 実装"""
 
-    def __init__(self, client: Client, config: DomainConfig):
+    def __init__(self, client: Client, config: DomainConfig, logger: Logger | None = None):
         super().__init__(client, config)
+        self.logger = logger
 
     async def find_by_id(self, book_id: str) -> Book | None:
         """Find a book aggregate by its ID with all related data."""
-        logger.debug(f"Finding book aggregate with ID: {book_id}")
+        if self.logger:
+            self.logger.debug(f"Finding book aggregate with ID: {book_id}")
 
         try:
             # JOINクエリでBook + Author + Problem統計を取得
             response = await self.client.rpc("get_book_aggregate", {"p_book_id": book_id}).execute()
 
             if response.error:
-                logger.error(f"Error finding book aggregate: {response.error.message}")
+                if self.logger:
+                    self.logger.error(f"Error finding book aggregate: {response.error.message}")
                 raise Exception(response.error.message)
 
             if not response.data:
@@ -49,12 +45,14 @@ class BookAggregateRepositoryImpl(DomainSupabaseMixin, BookAggregateRepository):
             return self._schema_to_aggregate(schema)
 
         except Exception as e:
-            logger.error(f"Failed to find book aggregate {book_id}: {e}")
+            if self.logger:
+                self.logger.error(f"Failed to find book aggregate {book_id}: {e}")
             return None
 
     async def find_all(self, limit: int = 50, offset: int = 0) -> list[Book]:
         """Find all book aggregates with pagination."""
-        logger.debug(f"Finding all book aggregates with limit: {limit}, offset: {offset}")
+        if self.logger:
+            self.logger.debug(f"Finding all book aggregates with limit: {limit}, offset: {offset}")
 
         try:
             response = await self.client.rpc(
@@ -62,7 +60,8 @@ class BookAggregateRepositoryImpl(DomainSupabaseMixin, BookAggregateRepository):
             ).execute()
 
             if response.error:
-                logger.error(f"Error finding book aggregates: {response.error.message}")
+                if self.logger:
+                    self.logger.error(f"Error finding book aggregates: {response.error.message}")
                 raise Exception(response.error.message)
 
             books = []
@@ -75,16 +74,19 @@ class BookAggregateRepositoryImpl(DomainSupabaseMixin, BookAggregateRepository):
             return books
 
         except Exception as e:
-            logger.error(f"Failed to find book aggregates: {e}")
+            if self.logger:
+                self.logger.error(f"Failed to find book aggregates: {e}")
             return []
 
     def _schema_to_aggregate(self, schema: BookReadAggregateSchema) -> Book:
         """Convert a BookReadAggregateSchema to a Book aggregate."""
-        # UserEntityを構築
-        author = UserEntity(
+        # AuthorInfoを構築 - 外部依存を排除
+        author = AuthorInfo(
             id=schema.author_id,
-            name=schema.author_name,
+            user_name=schema.author_name,
+            display_name=schema.author_name,  # スキーマにdisplay_nameがない場合はnameを使用
             email=schema.author_email,
+            avatar_url=None  # スキーマにない場合はNone
         )
 
         # Book集約を構築
