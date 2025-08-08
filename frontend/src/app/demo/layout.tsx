@@ -4,8 +4,9 @@ import './globals.css';
 import 'katex/dist/katex.min.css';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { AuthProvider } from '@/components/auth/AuthProvider';
-import Header from '@/components/layout/Header';
-import Sidebar from '@/components/layout/Sidebar';
+import { BackgroundLayer } from '@/components/ui/BackgroundLayer';
+import DemoHeader from './components/DemoHeader';
+import DemoSidebar from './components/DemoSidebar';
 import { useState } from 'react';
 
 export default function DemoLayout({
@@ -26,41 +27,39 @@ export default function DemoLayout({
   return (
     <ThemeProvider>
       <AuthProvider>
-        <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col">
-        {/* Demo Banner */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 py-2">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center space-x-2 text-sm">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-              <span className="text-blue-600 dark:text-blue-400 font-medium">
-                デモモード - モックデータを使用しています
-              </span>
-            </div>
-          </div>
-        </div>
+        {/* Background Layer - Fixed to viewport */}
+        <BackgroundLayer />
         
-        {/* Header */}
-        <Header onToggleSidebar={toggleSidebar} />
-        
-        {/* Main Container */}
-        <div className="flex flex-1">
-          {/* Sidebar */}
-          <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
+        <div className="h-screen flex flex-col overflow-hidden relative">
           
-          {/* Main Content */}
-          <main className="flex-1">
-            {children}
-          </main>
-        </div>
-        
-        {/* Footer */}
-        <footer className="bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-              © 2024 Programming Platform - Demo Mode
+          {/* Demo Header Component */}
+          <DemoHeader onToggleSidebar={toggleSidebar} />
+
+          {/* Middle Section - Content with padding container */}
+          <div className="flex-1 overflow-hidden">
+            
+            {/* Mobile Sidebar */}
+            <div className="lg:hidden">
+              <DemoSidebar isOpen={sidebarOpen} onClose={closeSidebar} />
+            </div>
+            
+            {/* Desktop Sidebar */}
+            <div className="hidden lg:block">
+              <DemoSidebar isOpen={sidebarOpen} onClose={closeSidebar} />
+            </div>
+
+            {/* Padding Container for large screens */}
+            <div className="h-full lg:p-16 p-4">
+              {/* Main Content Area */}
+              <main className="h-full bg-black/10 dark:bg-black/20 rounded-lg overflow-auto relative backdrop-blur-sm">
+                {/* Content */}
+                <div className="relative z-10 p-4 w-full">
+                  {children}
+                </div>
+              </main>
             </div>
           </div>
-        </footer>
+
         </div>
       </AuthProvider>
     </ThemeProvider>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
+import { LeftBottomVerticalBar, LeftBottomHorizontalBar } from '@/components/layout/bars';
 
 const navigationItems = [
   {
@@ -95,6 +96,27 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     item => !item.requireAuth || isAuthenticated
   );
 
+  // Create bottom bar items from navigation items
+  const bottomBarItems = filteredNavItems.slice(0, 4).map((item) => {
+    const isActive = pathname === item.href;
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={() => onClose()}
+        className={`
+          flex items-center justify-center p-2 rounded-xl transition-all duration-200
+          ${isActive
+            ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-400'
+            : 'text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400'
+          }
+        `}
+      >
+        {item.icon}
+      </Link>
+    );
+  });
+
   return (
     <>
       {/* Overlay */}
@@ -110,14 +132,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
+      {/* Sidebar - Hide on large screens in favor of bottom bars */}
       <motion.aside
         initial={false}
         animate={{
-          x: isLargeScreen ? 0 : (isOpen ? 0 : -320),
+          x: isLargeScreen ? -320 : (isOpen ? 0 : -320),
         }}
         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-        className="fixed top-0 left-0 z-50 w-80 h-full bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 shadow-2xl lg:relative lg:z-auto lg:w-80 lg:flex-shrink-0 lg:h-auto flex flex-col lg:shadow-none"
+        className="fixed top-0 left-0 z-50 w-80 h-full bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 shadow-2xl lg:hidden flex flex-col"
       >
         <div className="flex flex-col h-full">
           {/* Header */}
@@ -203,6 +225,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
         </div>
       </motion.aside>
+
+      {/* Bottom bars for large screens */}
+      <div className="hidden lg:block">
+        <LeftBottomHorizontalBar items={bottomBarItems.slice(0, 2)} />
+        <LeftBottomVerticalBar items={bottomBarItems.slice(2, 4)} />
+      </div>
     </>
   );
 }
