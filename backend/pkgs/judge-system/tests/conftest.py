@@ -141,14 +141,9 @@ class IntegrationTestBase:
     def setup_integration_test(self):
         """統合テストの共通セットアップ"""
         from ppcore.infrastructure.supabase.client import create_client
-        from ppcore.domain.protocols.database_protocols import DatabaseConfig
-        import os
         
-        config = DatabaseConfig(
-            url=os.getenv("SUPABASE_URL", "https://test.supabase.co"),
-            key=os.getenv("SUPABASE_ANON_KEY", "test_key")
-        )
-        self.supabase = create_client(config)
+        # .envから自動で読み込むようになったのでシンプルに
+        self.supabase = create_client()
     
     async def get_user_by_email(self, email: str):
         """メールアドレスでユーザーを取得"""

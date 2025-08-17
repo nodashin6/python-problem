@@ -91,30 +91,30 @@ class CoreDomainEventHandler:
     ):
         self.submission_use_case = submission_use_case
         self.event_bus = event_bus
-        self._setup_subscriptions()
+        # 非同期のセットアップは初期化後に別途呼び出す必要がある
 
-    def _setup_subscriptions(self):
+    async def _setup_subscriptions(self):
         """イベント購読を設定"""
         # Coreドメインからのイベントを購読
-        self.event_bus.subscribe(
+        await self.event_bus.subscribe(
             "problem.created",
             self.handle_problem_created,
             source_domain=DomainType.CORE,
         )
 
-        self.event_bus.subscribe(
+        await self.event_bus.subscribe(
             "problem.updated",
             self.handle_problem_updated,
             source_domain=DomainType.CORE,
         )
 
-        self.event_bus.subscribe(
+        await self.event_bus.subscribe(
             "judgecase.updated",
             self.handle_judge_case_updated,
             source_domain=DomainType.CORE,
         )
 
-        self.event_bus.subscribe(
+        await self.event_bus.subscribe(
             "user.registered",
             self.handle_user_registered,
             source_domain=DomainType.CORE,
@@ -211,26 +211,26 @@ class JudgeSystemEventHandler:
     ):
         self.worker_use_case = worker_use_case
         self.event_bus = event_bus
-        self._setup_subscriptions()
+        # 非同期のセットアップは初期化後に別途呼び出す必要がある
 
-    def _setup_subscriptions(self):
+    async def _setup_subscriptions(self):
         """イベント購読を設定"""
         # ジャッジシステム内部イベントを購読
-        self.event_bus.subscribe(
+        await self.event_bus.subscribe(
             "submission.created",
             self.handle_submission_created,
             source_domain=DomainType.JUDGE,
         )
 
-        self.event_bus.subscribe("judge.started", self.handle_judge_started, source_domain=DomainType.JUDGE)
+        await self.event_bus.subscribe("judge.started", self.handle_judge_started, source_domain=DomainType.JUDGE)
 
-        self.event_bus.subscribe(
+        await self.event_bus.subscribe(
             "judge.completed",
             self.handle_judge_completed,
             source_domain=DomainType.JUDGE,
         )
 
-        self.event_bus.subscribe("judge.error", self.handle_judge_error, source_domain=DomainType.JUDGE)
+        await self.event_bus.subscribe("judge.error", self.handle_judge_error, source_domain=DomainType.JUDGE)
 
     async def handle_submission_created(self, event: SubmissionCreatedEvent):
         """提出作成イベントの処理"""

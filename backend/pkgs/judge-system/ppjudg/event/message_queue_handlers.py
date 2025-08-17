@@ -7,7 +7,7 @@ Message Queue Event Handlers
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, UTC, timedelta
 from typing import Any
 
 from dependency_injector.wiring import Provide, inject
@@ -176,7 +176,7 @@ class SubmissionQueueHandler(MessageQueueEventHandler):
             if queue_item:
                 queue_item.status = ExecutionStatus.RUNNING
                 queue_item.worker_id = worker_id
-                queue_item.started_at = datetime.utcnow()
+                queue_item.started_at = datetime.now(UTC)
                 await self.queue_repo.save(queue_item)
 
             # ドメインサービスでジャッジ実行
@@ -189,7 +189,7 @@ class SubmissionQueueHandler(MessageQueueEventHandler):
                 # キューを完了状態に更新
                 if queue_item:
                     queue_item.status = ExecutionStatus.COMPLETED
-                    queue_item.completed_at = datetime.utcnow()
+                    queue_item.completed_at = datetime.now(UTC)
                     await self.queue_repo.save(queue_item)
 
                 logger.info(f"Judge request completed successfully: {submission_id}")
@@ -401,7 +401,7 @@ class JudgeWorkerEventHandler(MessageQueueEventHandler):
     async def _reset_stale_items(self, minutes: int) -> int:
         """スタックしたアイテムをリセット"""
         try:
-            cutoff_time = datetime.utcnow() - datetime.timedelta(minutes=minutes)
+            cutoff_time = datetime.now(UTC) - timedelta(minutes=minutes)
             stale_items = await self.queue_repo.find_stale_items(cutoff_time)
             reset_count = 0
 
@@ -420,7 +420,7 @@ class JudgeWorkerEventHandler(MessageQueueEventHandler):
     async def _cleanup_completed_items(self, days: int) -> int:
         """完了済みアイテムをクリーンアップ"""
         try:
-            cutoff_date = datetime.utcnow() - datetime.timedelta(days=days)
+            cutoff_date = datetime.now(UTC) - timedelta(days=days)
             return await self.queue_repo.delete_completed_before(cutoff_date)
         except Exception as e:
             logger.error(f"Failed to cleanup completed items: {e}")

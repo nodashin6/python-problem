@@ -27,10 +27,10 @@ def test_connection():
         # Try a simple query
         result = client.table("books").select("*").execute()
         print(f"Connection successful! Found {len(result.data)} books")
-        return True
+        assert len(result.data) >= 0  # Use assert instead of return for pytest
     except Exception as e:
         print(f"Connection failed: {e}")
-        return False
+        assert False, f"Connection failed: {e}"
 
 if __name__ == "__main__":
     # Set environment variables from .env file
