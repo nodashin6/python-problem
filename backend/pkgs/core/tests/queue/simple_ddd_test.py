@@ -31,25 +31,25 @@ from dataclasses import dataclass
 
 
 @dataclass
-class TestCommand(IUseCaseCommand):
+class DummyCommand(IUseCaseCommand):
     name: str = "Test"
 
 
 @dataclass
-class TestResult(IUseCaseResult):
+class DummyResult(IUseCaseResult):
     message: str
 
 
-class TestUseCase(IUseCase[TestCommand, TestResult], BaseQueueService):
+class DummyUseCase(IUseCase[DummyCommand, DummyResult], BaseQueueService):
     def __init__(self):
         BaseQueueService.__init__(self, "test")
 
-    async def execute(self, command: TestCommand) -> TestResult:
-        return TestResult(message=f"Hello {command.name}!")
+    async def execute(self, command: DummyCommand) -> DummyResult:
+        return DummyResult(message=f"Hello {command.name}!")
 
     async def _execute_business_logic(self, message: QMessage) -> QResponse:
         name = message.payload.get("name", "World")
-        command = TestCommand(name=name)
+        command = DummyCommand(name=name)
         result = await self.execute(command)
         return QResponse(success=True, result={"message": result.message})
 
@@ -57,10 +57,10 @@ class TestUseCase(IUseCase[TestCommand, TestResult], BaseQueueService):
 async def main():
     print("Testing DDD Integration...")
 
-    usecase = TestUseCase()
+    usecase = DummyUseCase()
 
     # Test DDD execution
-    command = TestCommand(name="DDD")
+    command = DummyCommand(name="DDD")
     result = await usecase.execute(command)
     print(f"✓ DDD Result: {result}")
 

@@ -9,9 +9,9 @@ from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 
 from ..domain.models import CodeExecution, ExecutionResult
-from ..domain.repositories.code_execution_repository import CodeExecutionRepository
+from ..domain.repositories.code_execution_repository import CodeExecutionRepositoryBase as CodeExecutionRepository
 from ..domain.services.judge_service import JudgeDomainService
-from ...const import ProgrammingLanguage as Language, ExecutionStatus
+from ..domain.entities.enums import ProgrammingLanguage as Language, ExecutionStatus
 
 
 logger = logging.getLogger(__name__)

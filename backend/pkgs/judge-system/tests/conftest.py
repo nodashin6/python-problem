@@ -132,3 +132,47 @@ class MockEntityFactory:
 def mock_entity_factory():
     """MockEntityFactoryのフィクスチャ"""
     return MockEntityFactory
+
+
+class IntegrationTestBase:
+    """統合テストのベースクラス"""
+    
+    @pytest.fixture(autouse=True)
+    def setup_integration_test(self):
+        """統合テストの共通セットアップ"""
+        from ppcore.infrastructure.supabase.client import create_client
+        from ppcore.domain.protocols.database_protocols import DatabaseConfig
+        import os
+        
+        config = DatabaseConfig(
+            url=os.getenv("SUPABASE_URL", "https://test.supabase.co"),
+            key=os.getenv("SUPABASE_ANON_KEY", "test_key")
+        )
+        self.supabase = create_client(config)
+    
+    async def get_user_by_email(self, email: str):
+        """メールアドレスでユーザーを取得"""
+        result = self.supabase.table("users").select("*").eq("email", email).execute()
+        return result.data[0] if result.data else None
+    
+    async def get_problem_by_title(self, title: str):
+        """タイトルで問題を取得"""
+        result = self.supabase.table("problem_headers").select("*").eq("title", title).execute()
+        return result.data[0] if result.data else None
+    
+    async def create_test_submission(self, problem_id, user_id, source_code, language="python"):
+        """テスト用の提出を作成"""
+        submission_data = {
+            "problem_id": problem_id,
+            "user_id": user_id,
+            "code": source_code,
+            "language": language,
+            "status": "pending"
+        }
+        result = self.supabase.table("submissions").insert(submission_data).execute()
+        return result.data[0]["id"] if result.data else None
+    
+    async def get_submission_by_id(self, submission_id):
+        """IDで提出を取得"""
+        result = self.supabase.table("submissions").select("*").eq("id", submission_id).execute()
+        return result.data[0] if result.data else None

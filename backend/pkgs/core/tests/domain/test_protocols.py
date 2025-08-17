@@ -79,11 +79,26 @@ class MockDBClient(DBClient):
     
     def __init__(self):
         self.queries = []
+        self.commands = []
         self.responses = {}
+        self.in_transaction = False
     
     async def execute_query(self, query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         self.queries.append((query, params))
         return self.responses.get(query, [])
+    
+    async def execute_command(self, command: str, params: Optional[Dict[str, Any]] = None) -> int:
+        self.commands.append((command, params))
+        return 1  # Mock affected rows
+    
+    async def begin_transaction(self) -> None:
+        self.in_transaction = True
+    
+    async def commit_transaction(self) -> None:
+        self.in_transaction = False
+    
+    async def rollback_transaction(self) -> None:
+        self.in_transaction = False
     
     def set_response(self, query: str, response: List[Dict[str, Any]]):
         self.responses[query] = response
@@ -107,6 +122,9 @@ class MockS3Client(S3Client):
     async def delete_file(self, bucket: str, key: str) -> bool:
         return True
     
+    async def get_presigned_url(self, bucket: str, key: str, expires_in: int = 3600) -> str:
+        return f"https://mock-s3.com/{bucket}/{key}?expires={expires_in}"
+    
     async def list_files(self, bucket: str, prefix: str = "") -> List[str]:
         return []
 
@@ -116,19 +134,34 @@ class MockMQClient(MQClient):
     
     def __init__(self):
         self.published = []
-        self.subscriptions = {}
+        self.consumed = []
+        self.acknowledged = []
+        self.rejected = []
+        self.queues = set()
     
-    async def publish(self, topic: str, message: Dict[str, Any]) -> bool:
-        self.published.append((topic, message))
+    async def publish_message(self, queue: str, message: Dict[str, Any], delay: Optional[int] = None) -> str:
+        msg_id = f"msg_{len(self.published)}"
+        self.published.append((queue, message, delay, msg_id))
+        return msg_id
+    
+    async def consume_message(self, queue: str, timeout: Optional[int] = None) -> Optional[Dict[str, Any]]:
+        self.consumed.append((queue, timeout))
+        return {"id": "test_msg", "body": "test"}
+    
+    async def acknowledge_message(self, queue: str, message_id: str) -> bool:
+        self.acknowledged.append((queue, message_id))
         return True
     
-    async def subscribe(self, topic: str, handler) -> bool:
-        self.subscriptions[topic] = handler
+    async def reject_message(self, queue: str, message_id: str, requeue: bool = True) -> bool:
+        self.rejected.append((queue, message_id, requeue))
         return True
     
-    async def unsubscribe(self, topic: str) -> bool:
-        if topic in self.subscriptions:
-            del self.subscriptions[topic]
+    async def create_queue(self, queue: str, durable: bool = True) -> bool:
+        self.queues.add(queue)
+        return True
+    
+    async def delete_queue(self, queue: str, if_empty: bool = True) -> bool:
+        self.queues.discard(queue)
         return True
 
 
@@ -204,31 +237,33 @@ class TestMQClient:
 
     async def test_publish(self, mq_client):
         """Test message publishing"""
-        topic = "test-topic"
+        queue = "test-queue"
         message = {"type": "test", "data": "hello"}
         
-        result = await mq_client.publish(topic, message)
+        result = await mq_client.publish_message(queue, message)
         
-        assert result is True
-        assert (topic, message) in mq_client.published
+        assert isinstance(result, str)
+        assert len(mq_client.published) == 1
 
     async def test_subscribe(self, mq_client):
-        """Test topic subscription"""
-        topic = "test-topic"
-        handler = lambda msg: None
+        """Test message consumption"""
+        queue = "test-queue"
         
-        result = await mq_client.subscribe(topic, handler)
+        result = await mq_client.consume_message(queue)
         
-        assert result is True
-        assert mq_client.subscriptions[topic] == handler
+        assert result is not None
+        assert len(mq_client.consumed) == 1
 
     async def test_unsubscribe(self, mq_client):
-        """Test topic unsubscription"""
-        topic = "test-topic"
-        handler = lambda msg: None
+        """Test queue management"""
+        queue = "test-queue"
         
-        await mq_client.subscribe(topic, handler)
-        result = await mq_client.unsubscribe(topic)
-        
+        # Create queue
+        result = await mq_client.create_queue(queue)
         assert result is True
-        assert topic not in mq_client.subscriptions
+        assert queue in mq_client.queues
+        
+        # Delete queue
+        result = await mq_client.delete_queue(queue)
+        assert result is True
+        assert queue not in mq_client.queues

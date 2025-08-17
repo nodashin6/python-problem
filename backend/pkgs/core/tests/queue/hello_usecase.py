@@ -10,7 +10,10 @@ from dataclasses import dataclass
 from ppcore.queue.services.queue_service import BaseQueueService, QMessage, QResponse
 
 # Mock pydddi implementation for testing
-from .mock_pydddi import (
+import sys
+import os
+sys.path.append(os.path.dirname(__file__))
+from mock_pydddi import (
     IUseCase,
     IUseCaseCommand,
     IUseCaseResult,
@@ -32,7 +35,7 @@ class HelloResult(IUseCaseResult):
     processed_by: str
 
 
-class HelloUseCase(IUseCase[HelloCommand, HelloResult], BaseQueueService):
+class HelloUseCase(BaseQueueService, IUseCase[HelloCommand, HelloResult]):
     """
     Hello UseCase - DDDパターンとQueue Serviceの統合実装
     pydddiのIUseCaseインターフェースとQueue Serviceを両方継承
@@ -41,10 +44,16 @@ class HelloUseCase(IUseCase[HelloCommand, HelloResult], BaseQueueService):
     def __init__(self):
         BaseQueueService.__init__(self, "hello")
 
-    async def execute(self, command: HelloCommand) -> HelloResult:
-        """DDDパターンのUseCase実行"""
+    async def execute(self, command_or_message):
+        """Handle both DDD command execution and Queue message execution"""
+        # Check if it's a QMessage (Queue Service path)
+        if hasattr(command_or_message, 'message_type') and hasattr(command_or_message, 'payload'):
+            # This is the BaseQueueService execute path
+            return await super().execute(command_or_message)
+        
+        # This is the DDD execute path
+        command = command_or_message
         greeting = f"Hello, {command.name}!"
-
         return HelloResult(greeting=greeting, processed_by="HelloUseCase")
 
     async def _execute_business_logic(self, message: QMessage) -> QResponse:

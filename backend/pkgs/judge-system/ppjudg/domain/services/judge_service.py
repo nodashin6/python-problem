@@ -14,7 +14,12 @@ from ..value_objects.execution_status import (
     JudgeResultType as JudgeResult,
     ProgrammingLanguage as Language,
 )
-from ppcore.domain.client_protocols import DBClient
+# from ppcore.domain.client_protocols import DBClient
+from typing import Protocol
+
+class DBClient(Protocol):
+    """Database client protocol - local definition to avoid ppcore dependency"""
+    pass
 from ..models import (
     CodeExecution,
     ExecutionResult,

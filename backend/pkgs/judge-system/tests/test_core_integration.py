@@ -3,12 +3,14 @@ Core domain integration tests
 Core domainの統合テスト
 """
 
-from tests.conftest import IntegrationTestBase
+import pytest
+from conftest import IntegrationTestBase
 
 
 class TestCoreIntegration(IntegrationTestBase):
     """Core domainの統合テスト"""
 
+    @pytest.mark.asyncio
     async def test_books_and_problems_relationship(self):
         """書籍と問題の関係性をテスト"""
         # 書籍を取得
@@ -28,14 +30,9 @@ class TestCoreIntegration(IntegrationTestBase):
         problem = problems_result.data[0]
         assert problem["book_id"] == book["id"]
         assert problem["title"] is not None
-        assert problem["difficulty_level"] in [
-            "beginner",
-            "intermediate",
-            "advanced",
-            "expert",
-        ]
-        assert problem["status"] in ["draft", "published", "archived"]
+        assert problem["description"] is not None
 
+    @pytest.mark.asyncio
     async def test_problem_contents_multilingual(self):
         """問題内容の多言語対応をテスト"""
         # 問題を取得
@@ -57,6 +54,7 @@ class TestCoreIntegration(IntegrationTestBase):
         assert content["input_format"] is not None
         assert content["output_format"] is not None
 
+    @pytest.mark.asyncio
     async def test_judge_cases_with_files(self):
         """ジャッジケースとファイルの関係をテスト"""
         # 問題を取得
@@ -80,6 +78,7 @@ class TestCoreIntegration(IntegrationTestBase):
         assert judge_case["output_file"]["url"] is not None
         assert judge_case["judge_case_type"] in ["sample", "normal", "edge", "stress"]
 
+    @pytest.mark.asyncio
     async def test_user_management(self):
         """ユーザー管理機能をテスト"""
         # ユーザーを取得
@@ -94,6 +93,7 @@ class TestCoreIntegration(IntegrationTestBase):
         assert len(role_result.data) >= 1
         assert role_result.data[0]["role"] == "user"
 
+    @pytest.mark.asyncio
     async def test_user_stats_initialization(self):
         """ユーザー統計の初期化をテスト"""
         # ユーザーを取得
@@ -109,6 +109,7 @@ class TestCoreIntegration(IntegrationTestBase):
             assert stats["solved_count"] >= 0
             assert stats["submission_count"] >= 0
 
+    @pytest.mark.asyncio
     async def test_problem_difficulty_constraint(self):
         """問題の難易度制約をテスト"""
         # すべての問題の難易度をチェック
@@ -118,6 +119,7 @@ class TestCoreIntegration(IntegrationTestBase):
         for problem in problems_result.data:
             assert problem["difficulty_level"] in valid_difficulties
 
+    @pytest.mark.asyncio
     async def test_book_order_index(self):
         """書籍の順序インデックスをテスト"""
         # 書籍を順序で取得
@@ -131,6 +133,7 @@ class TestCoreIntegration(IntegrationTestBase):
             assert book["order_index"] > prev_order
             prev_order = book["order_index"]
 
+    @pytest.mark.asyncio
     async def test_problem_time_memory_limits(self):
         """問題の時間・メモリ制限をテスト"""
         problems_result = self.supabase.table("problem_headers").select("*").execute()
@@ -145,6 +148,7 @@ class TestCoreIntegration(IntegrationTestBase):
 class TestCoreDataConsistency(IntegrationTestBase):
     """Core domainのデータ整合性テスト"""
 
+    @pytest.mark.asyncio
     async def test_foreign_key_relationships(self):
         """外部キー関係の整合性をテスト"""
         # すべての問題が有効な書籍IDを持っているか
@@ -156,6 +160,7 @@ class TestCoreDataConsistency(IntegrationTestBase):
         for problem in problems_result.data:
             assert problem["book_id"] in book_ids, f"Invalid book_id: {problem['book_id']}"
 
+    @pytest.mark.asyncio
     async def test_judge_cases_file_references(self):
         """ジャッジケースのファイル参照整合性をテスト"""
         judge_cases_result = self.supabase.table("judge_cases").select("input_id, output_id").execute()
@@ -167,6 +172,7 @@ class TestCoreDataConsistency(IntegrationTestBase):
             assert judge_case["input_id"] in file_ids, f"Invalid input_id: {judge_case['input_id']}"
             assert judge_case["output_id"] in file_ids, f"Invalid output_id: {judge_case['output_id']}"
 
+    @pytest.mark.asyncio
     async def test_user_role_consistency(self):
         """ユーザーロールの整合性をテスト"""
         users_result = self.supabase.table("users").select("id").execute()

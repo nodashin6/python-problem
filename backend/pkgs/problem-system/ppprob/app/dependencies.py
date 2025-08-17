@@ -17,8 +17,8 @@ from ..domain.repositories.book_repository import BookRepositoryBase
 from ..domain.repositories.problem_repository import ProblemRepositoryBase
 from ..domain.services.book_service import BookService
 from ..domain.services.problem_service import ProblemApplicationService
-from ..infrastructure.supabase.repositories.book_repository_impl import BookRepository
-from ..infrastructure.supabase.repositories.problem_repository_impl import ProblemRepository
+from ..infrastructure.supabase.repositories.book_repository_impl import BookRepositoryImpl
+from ..infrastructure.supabase.repositories.problem_repository_impl import ProblemRepositoryImpl
 from ..usecase.create_book_usecase import CreateBookUseCase
 from ..usecase.create_problem_usecase import CreateProblemUseCase
 from ..usecase.read_book_usecase import ReadBookByIdUseCase, ReadPublishedBooksUseCase
@@ -42,7 +42,9 @@ def get_supabase_client() -> Client:
     if not supabase_url or not supabase_key:
         raise ValueError("SUPABASE_URL and SUPABASE_ANON_KEY must be set")
 
-    return create_client(supabase_url, supabase_key)
+    from supabase import ClientOptions
+    options = ClientOptions()
+    return create_client(supabase_url, supabase_key, options=options)
 
 
 @lru_cache
@@ -59,16 +61,18 @@ def get_domain_config() -> DomainConfig:
 
 def get_book_repository(
     supabase_client: Client = Depends(get_supabase_client),
+    config: DomainConfig = Depends(get_domain_config),
 ) -> BookRepositoryBase:
     """Get book repository"""
-    return BookRepository(supabase_client)
+    return BookRepositoryImpl(supabase_client, config)
 
 
 def get_problem_repository(
     supabase_client: Client = Depends(get_supabase_client),
+    config: DomainConfig = Depends(get_domain_config),
 ) -> ProblemRepositoryBase:
     """Get problem repository"""
-    return ProblemRepository(supabase_client)
+    return ProblemRepositoryImpl(supabase_client, config)
 
 
 # =============================================================================

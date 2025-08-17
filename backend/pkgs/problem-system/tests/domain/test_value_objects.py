@@ -142,7 +142,8 @@ class TestAuthorInfo:
 
     def test_validation_empty_required_fields(self):
         """Test validation with empty required fields"""
-        with pytest.raises(ValueError):
+        from pydantic import ValidationError
+        with pytest.raises(ValidationError):
             AuthorInfo(
                 id=uuid4(),
                 user_name="",  # Empty username should fail

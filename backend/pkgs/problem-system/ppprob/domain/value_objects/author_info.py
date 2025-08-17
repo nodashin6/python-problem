@@ -18,9 +18,9 @@ class AuthorInfo(BaseModel):
     model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
     
     id: UUID4 = Field(..., description="Author user ID")
-    user_name: str = Field(..., description="Author username")
-    display_name: str = Field(..., description="Author display name")  
-    email: str = Field(..., description="Author email")
+    user_name: str = Field(..., min_length=1, description="Author username")
+    display_name: str = Field(..., min_length=1, description="Author display name")  
+    email: str = Field(..., min_length=1, description="Author email")
     avatar_url: str | None = Field(None, description="Author avatar URL")
     
     @classmethod

@@ -12,22 +12,12 @@ SAMPLE_BOOKS = [
     {
         "id": "550e8400-e29b-41d4-a716-446655440000",
         "title": "はじめてのプログラミング",
-        "description": "プログラミング初心者向けの基礎問題集",
-        "author": "テスト太郎",
-        "difficulty_level": "beginner",
-        "category": "basic",
-        "is_public": True,
-        "order_index": 1,
+        "author_id": "550e8400-e29b-41d4-a716-446655440020",
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440001",
         "title": "アルゴリズム入門",
-        "description": "基本的なアルゴリズムを学ぶ問題集",
-        "author": "アルゴ花子",
-        "difficulty_level": "intermediate",
-        "category": "algorithm",
-        "is_public": True,
-        "order_index": 2,
+        "author_id": "550e8400-e29b-41d4-a716-446655440021",
     },
 ]
 
@@ -37,36 +27,18 @@ SAMPLE_PROBLEMS = [
         "book_id": "550e8400-e29b-41d4-a716-446655440000",
         "title": "Hello World",
         "description": "基本的な出力問題",
-        "difficulty_level": "beginner",
-        "time_limit_ms": 1000,
-        "memory_limit_mb": 64,
-        "status": "published",
-        "order_index": 1,
-        "created_by": "550e8400-e29b-41d4-a716-446655440020",
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440011",
         "book_id": "550e8400-e29b-41d4-a716-446655440000",
         "title": "足し算問題",
         "description": "二つの数値を足し算する問題",
-        "difficulty_level": "beginner",
-        "time_limit_ms": 2000,
-        "memory_limit_mb": 128,
-        "status": "published",
-        "order_index": 2,
-        "created_by": "550e8400-e29b-41d4-a716-446655440020",
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440012",
         "book_id": "550e8400-e29b-41d4-a716-446655440001",
         "title": "配列の最大値",
         "description": "配列から最大値を見つける問題",
-        "difficulty_level": "intermediate",
-        "time_limit_ms": 3000,
-        "memory_limit_mb": 256,
-        "status": "published",
-        "order_index": 1,
-        "created_by": "550e8400-e29b-41d4-a716-446655440021",
     },
 ]
 
@@ -74,32 +46,91 @@ SAMPLE_PROBLEM_CONTENTS = [
     {
         "problem_id": "550e8400-e29b-41d4-a716-446655440010",
         "language": "ja",
-        "statement": '"Hello, World!"と出力してください。',
-        "input_format": "入力はありません。",
-        "output_format": "Hello, World!",
-        "constraints": "制約はありません。",
-        "sample_input": "",
-        "sample_output": "Hello, World!",
+        "markdown": '''# Hello World
+
+## 問題文
+"Hello, World!"と出力してください。
+
+## 入力
+入力はありません。
+
+## 出力
+Hello, World!
+
+## 制約
+制約はありません。
+
+## サンプル
+
+### 入力
+```
+
+```
+
+### 出力
+```
+Hello, World!
+```''',
     },
     {
         "problem_id": "550e8400-e29b-41d4-a716-446655440011",
         "language": "ja",
-        "statement": "二つの整数A, Bが与えられます。A + Bを出力してください。",
-        "input_format": "1行目に整数A, Bが空白区切りで与えられます。",
-        "output_format": "A + Bの値を出力してください。",
-        "constraints": "1 ≤ A, B ≤ 1000",
-        "sample_input": "3 5",
-        "sample_output": "8",
+        "markdown": '''# 足し算問題
+
+## 問題文
+二つの整数A, Bが与えられます。A + Bを出力してください。
+
+## 入力
+1行目に整数A, Bが空白区切りで与えられます。
+
+## 出力
+A + Bの値を出力してください。
+
+## 制約
+1 ≤ A, B ≤ 1000
+
+## サンプル
+
+### 入力
+```
+3 5
+```
+
+### 出力
+```
+8
+```''',
     },
     {
         "problem_id": "550e8400-e29b-41d4-a716-446655440012",
         "language": "ja",
-        "statement": "N個の整数からなる配列が与えられます。その中の最大値を出力してください。",
-        "input_format": "1行目に整数N、2行目にN個の整数が空白区切りで与えられます。",
-        "output_format": "配列の最大値を出力してください。",
-        "constraints": "1 ≤ N ≤ 100\\n1 ≤ 各要素 ≤ 1000",
-        "sample_input": "5\\n3 1 4 1 5",
-        "sample_output": "5",
+        "markdown": '''# 配列の最大値
+
+## 問題文
+N個の整数からなる配列が与えられます。その中の最大値を出力してください。
+
+## 入力
+1行目に整数N、2行目にN個の整数が空白区切りで与えられます。
+
+## 出力
+配列の最大値を出力してください。
+
+## 制約
+- 1 ≤ N ≤ 100
+- 1 ≤ 各要素 ≤ 1000
+
+## サンプル
+
+### 入力
+```
+5
+3 1 4 1 5
+```
+
+### 出力
+```
+5
+```''',
     },
 ]
 
@@ -107,14 +138,14 @@ SAMPLE_USERS = [
     {
         "id": "550e8400-e29b-41d4-a716-446655440020",
         "email": "test.user@example.com",
-        "user_name": "testuser",
+        "username": "testuser",
         "display_name": "テストユーザー",
         "bio": "テスト用のユーザーです",
     },
     {
         "id": "550e8400-e29b-41d4-a716-446655440021",
         "email": "admin@example.com",
-        "user_name": "admin",
+        "username": "admin",
         "display_name": "管理者",
         "bio": "システム管理者",
     },
@@ -213,7 +244,7 @@ SAMPLE_SUBMISSIONS = [
         "problem_id": "550e8400-e29b-41d4-a716-446655440010",
         "user_id": "550e8400-e29b-41d4-a716-446655440020",
         "language": "python",
-        "source_code": 'print("Hello, World!")',
+        "code": 'print("Hello, World!")',
         "status": "completed",
     },
     {
@@ -221,7 +252,7 @@ SAMPLE_SUBMISSIONS = [
         "problem_id": "550e8400-e29b-41d4-a716-446655440011",
         "user_id": "550e8400-e29b-41d4-a716-446655440020",
         "language": "python",
-        "source_code": "a, b = map(int, input().split())\\nprint(a + b)",
+        "code": "a, b = map(int, input().split())\\nprint(a + b)",
         "status": "completed",
     },
 ]

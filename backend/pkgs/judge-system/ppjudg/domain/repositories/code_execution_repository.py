@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from ..models import CodeExecution
-from ppprob.domain.enums import Language
+from ..entities.enums import ProgrammingLanguage as Language
 from ..value_objects.execution_status import ExecutionStatus
 
 

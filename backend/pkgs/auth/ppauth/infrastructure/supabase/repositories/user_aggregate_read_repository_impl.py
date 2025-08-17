@@ -29,6 +29,14 @@ class UserAggregateReadRepository(UserAggregateReadRepositoryBase, SupabaseRepos
         self.users_table = "users"
         self.user_roles_table = "user_roles"
 
+    def get_table_name(self) -> str:
+        """Get table name for this repository"""
+        return self.users_table
+
+    def get_entity_type(self) -> type:
+        """Get entity type for this repository"""
+        return User
+
     async def read(self, id: UUID4) -> User:
         """Read user aggregate by ID"""
         try:

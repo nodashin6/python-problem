@@ -17,27 +17,37 @@ class TestJWTClaims:
     def test_creation(self):
         """Test JWT claims creation"""
         user_id = str(uuid4())
+        iat_time = datetime.now()
         exp_time = datetime.now() + timedelta(hours=1)
         
         claims = JWTClaims(
             user_id=user_id,
             email="test@example.com",
-            exp=exp_time,
-            role=UserRole.USER
+            user_name="testuser",
+            display_name="Test User",
+            role=UserRole.USER.value,
+            iat=iat_time,
+            exp=exp_time
         )
         
         assert claims.user_id == user_id
         assert claims.email == "test@example.com"
+        assert claims.user_name == "testuser"
+        assert claims.display_name == "Test User"
+        assert claims.role == UserRole.USER.value
+        assert claims.iat == iat_time
         assert claims.exp == exp_time
-        assert claims.role == UserRole.USER
 
     def test_immutability(self):
         """Test that JWT claims are immutable"""
         claims = JWTClaims(
             user_id=str(uuid4()),
             email="test@example.com",
-            exp=datetime.now() + timedelta(hours=1),
-            role=UserRole.USER
+            user_name="testuser",
+            display_name="Test User",
+            role=UserRole.USER.value,
+            iat=datetime.now(),
+            exp=datetime.now() + timedelta(hours=1)
         )
         
         with pytest.raises(ValueError, match=".*frozen.*"):
@@ -48,9 +58,12 @@ class TestJWTClaims:
         # Create expired claims
         expired_claims = JWTClaims(
             user_id=str(uuid4()),
-            email="test@example.com", 
-            exp=datetime.now() - timedelta(hours=1),  # Expired
-            role=UserRole.USER
+            email="test@example.com",
+            user_name="testuser",
+            display_name="Test User",
+            role=UserRole.USER.value,
+            iat=datetime.now() - timedelta(hours=2),
+            exp=datetime.now() - timedelta(hours=1)
         )
         
         assert expired_claims.is_expired()
@@ -59,8 +72,11 @@ class TestJWTClaims:
         valid_claims = JWTClaims(
             user_id=str(uuid4()),
             email="test@example.com",
-            exp=datetime.now() + timedelta(hours=1),  # Not expired
-            role=UserRole.USER
+            user_name="testuser",
+            display_name="Test User",
+            role=UserRole.USER.value,
+            iat=datetime.now(),
+            exp=datetime.now() + timedelta(hours=1)
         )
         
         assert not valid_claims.is_expired()
@@ -68,13 +84,17 @@ class TestJWTClaims:
     def test_to_dict(self):
         """Test converting claims to dictionary"""
         user_id = str(uuid4())
+        iat_time = datetime.now()
         exp_time = datetime.now() + timedelta(hours=1)
         
         claims = JWTClaims(
             user_id=user_id,
             email="test@example.com",
-            exp=exp_time,
-            role=UserRole.ADMIN
+            user_name="testuser",
+            display_name="Test User",
+            role=UserRole.ADMIN.value,
+            iat=iat_time,
+            exp=exp_time
         )
         
         result = claims.to_dict()
@@ -82,26 +102,35 @@ class TestJWTClaims:
         assert isinstance(result, dict)
         assert result["user_id"] == user_id
         assert result["email"] == "test@example.com"
+        assert result["user_name"] == "testuser"
+        assert result["display_name"] == "Test User"
         assert result["role"] == UserRole.ADMIN.value
+        assert "iat" in result
         assert "exp" in result
 
     def test_from_dict(self):
         """Test creating claims from dictionary"""
         user_id = str(uuid4())
+        iat_timestamp = datetime.now().timestamp()
         exp_timestamp = (datetime.now() + timedelta(hours=1)).timestamp()
         
         data = {
             "user_id": user_id,
             "email": "test@example.com",
-            "exp": exp_timestamp,
-            "role": UserRole.MODERATOR.value
+            "user_name": "testuser",
+            "display_name": "Test User",
+            "role": UserRole.MODERATOR.value,
+            "iat": iat_timestamp,
+            "exp": exp_timestamp
         }
         
         claims = JWTClaims.from_dict(data)
         
         assert claims.user_id == user_id
         assert claims.email == "test@example.com"
-        assert claims.role == UserRole.MODERATOR
+        assert claims.user_name == "testuser"
+        assert claims.display_name == "Test User"
+        assert claims.role == UserRole.MODERATOR.value
 
 
 class TestJWTToken:
@@ -111,94 +140,161 @@ class TestJWTToken:
         """Test JWT token creation"""
         token_string = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.signature"
         
-        token = JWTToken(
-            token=token_string,
-            expires_at=datetime.now() + timedelta(hours=1),
-            token_type="access"
+        claims = JWTClaims(
+            user_id=str(uuid4()),
+            email="test@example.com",
+            user_name="testuser",
+            display_name="Test User",
+            role=UserRole.USER.value,
+            iat=datetime.now(),
+            exp=datetime.now() + timedelta(hours=1)
         )
         
-        assert token.token == token_string
-        assert token.token_type == "access"
-        assert isinstance(token.expires_at, datetime)
+        token = JWTToken(
+            raw_token=token_string,
+            claims=claims
+        )
+        
+        assert token.raw_token == token_string
+        assert token.claims == claims
+        assert isinstance(token.claims.exp, datetime)
 
     def test_immutability(self):
         """Test that JWT token is immutable"""
+        claims = JWTClaims(
+            user_id=str(uuid4()),
+            email="test@example.com",
+            user_name="testuser",
+            display_name="Test User",
+            role=UserRole.USER.value,
+            iat=datetime.now(),
+            exp=datetime.now() + timedelta(hours=1)
+        )
+        
         token = JWTToken(
-            token="test_token",
-            expires_at=datetime.now() + timedelta(hours=1),
-            token_type="access"
+            raw_token="test_token",
+            claims=claims
         )
         
         with pytest.raises(ValueError, match=".*frozen.*"):
-            token.token = "new_token"
+            token.raw_token = "new_token"
 
     def test_is_expired(self):
         """Test token expiry checking"""
         # Create expired token
-        expired_token = JWTToken(
-            token="expired_token",
-            expires_at=datetime.now() - timedelta(hours=1),
-            token_type="access"
+        expired_claims = JWTClaims(
+            user_id=str(uuid4()),
+            email="test@example.com",
+            user_name="testuser",
+            display_name="Test User",
+            role=UserRole.USER.value,
+            iat=datetime.now() - timedelta(hours=2),
+            exp=datetime.now() - timedelta(hours=1)
         )
         
-        assert expired_token.is_expired()
+        expired_token = JWTToken(
+            raw_token="expired_token",
+            claims=expired_claims
+        )
+        
+        assert not expired_token.is_valid()
         
         # Create valid token
-        valid_token = JWTToken(
-            token="valid_token", 
-            expires_at=datetime.now() + timedelta(hours=1),
-            token_type="access"
+        valid_claims = JWTClaims(
+            user_id=str(uuid4()),
+            email="test@example.com",
+            user_name="testuser",
+            display_name="Test User",
+            role=UserRole.USER.value,
+            iat=datetime.now(),
+            exp=datetime.now() + timedelta(hours=1)
         )
         
-        assert not valid_token.is_expired()
+        valid_token = JWTToken(
+            raw_token="valid_token",
+            claims=valid_claims
+        )
+        
+        assert valid_token.is_valid()
 
     def test_time_until_expiry(self):
-        """Test calculating time until expiry"""
-        future_time = datetime.now() + timedelta(minutes=30)
-        
-        token = JWTToken(
-            token="test_token",
-            expires_at=future_time,
-            token_type="access"
+        """Test token user info extraction"""
+        user_id = str(uuid4())
+        claims = JWTClaims(
+            user_id=user_id,
+            email="test@example.com",
+            user_name="testuser",
+            display_name="Test User",
+            role=UserRole.ADMIN.value,
+            iat=datetime.now(),
+            exp=datetime.now() + timedelta(hours=1)
         )
         
-        time_left = token.time_until_expiry()
+        token = JWTToken(
+            raw_token="test_token",
+            claims=claims
+        )
         
-        # Should be approximately 30 minutes (with some tolerance)
-        assert timedelta(minutes=29) <= time_left <= timedelta(minutes=31)
+        assert token.get_user_id() == user_id
+        assert token.get_user_email() == "test@example.com"
+        assert token.get_user_role() == UserRole.ADMIN.value
 
     def test_refresh_token_type(self):
         """Test refresh token creation"""
-        token = JWTToken(
-            token="refresh_token_string",
-            expires_at=datetime.now() + timedelta(days=7),
-            token_type="refresh"
+        claims = JWTClaims(
+            user_id=str(uuid4()),
+            email="test@example.com",
+            user_name="testuser",
+            display_name="Test User",
+            role=UserRole.USER.value,
+            iat=datetime.now(),
+            exp=datetime.now() + timedelta(days=7)
         )
         
-        assert token.token_type == "refresh"
-        assert token.is_refresh_token()
-        assert not token.is_access_token()
+        token = JWTToken(
+            raw_token="refresh_token_string",
+            claims=claims
+        )
+        
+        assert token.raw_token == "refresh_token_string"
+        assert token.claims.role == UserRole.USER.value
 
     def test_access_token_type(self):
         """Test access token creation"""
-        token = JWTToken(
-            token="access_token_string",
-            expires_at=datetime.now() + timedelta(hours=1),
-            token_type="access"
+        claims = JWTClaims(
+            user_id=str(uuid4()),
+            email="test@example.com",
+            user_name="testuser",
+            display_name="Test User",
+            role=UserRole.USER.value,
+            iat=datetime.now(),
+            exp=datetime.now() + timedelta(hours=1)
         )
         
-        assert token.token_type == "access"
-        assert token.is_access_token()
-        assert not token.is_refresh_token()
+        token = JWTToken(
+            raw_token="access_token_string",
+            claims=claims
+        )
+        
+        assert token.raw_token == "access_token_string"
+        assert token.claims.role == UserRole.USER.value
 
     def test_bearer_format(self):
-        """Test getting token in Bearer format"""
-        token = JWTToken(
-            token="test_token_123",
-            expires_at=datetime.now() + timedelta(hours=1),
-            token_type="access"
+        """Test token properties"""
+        claims = JWTClaims(
+            user_id=str(uuid4()),
+            email="test@example.com",
+            user_name="testuser",
+            display_name="Test User",
+            role=UserRole.USER.value,
+            iat=datetime.now(),
+            exp=datetime.now() + timedelta(hours=1)
         )
         
-        bearer_token = token.to_bearer_format()
+        token = JWTToken(
+            raw_token="test_token_123",
+            claims=claims
+        )
         
-        assert bearer_token == "Bearer test_token_123"
+        assert token.raw_token == "test_token_123"
+        assert token.is_valid()

@@ -25,7 +25,7 @@ from .shared.domain_supabase_mixin import DomainSupabaseMixin
 logger = get_logger(__name__)
 
 
-class BookRepository(DomainSupabaseMixin, BookRepositoryBase):
+class BookRepositoryImpl(DomainSupabaseMixin, BookRepositoryBase):
     """Book リポジトリの Supabase 実装"""
 
     table_name = "books"
@@ -256,3 +256,6 @@ class BookRepository(DomainSupabaseMixin, BookRepositoryBase):
             created_at=schema.created_at,
             updated_at=schema.updated_at,
         )
+
+
+__all__ = ["BookRepositoryImpl"]

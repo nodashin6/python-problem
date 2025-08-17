@@ -3,12 +3,14 @@ Judge domain integration tests
 Judge domainの統合テスト
 """
 
-from tests.conftest import IntegrationTestBase
+import pytest
+from conftest import IntegrationTestBase
 
 
 class TestJudgeIntegration(IntegrationTestBase):
     """Judge domainの統合テスト"""
 
+    @pytest.mark.asyncio
     async def test_submission_lifecycle(self):
         """提出のライフサイクルをテスト"""
         # テスト用のユーザーと問題を取得
@@ -30,6 +32,7 @@ class TestJudgeIntegration(IntegrationTestBase):
         assert submission["source_code"] == source_code
         assert submission["status"] == "pending"
 
+    @pytest.mark.asyncio
     async def test_judge_process_creation(self):
         """ジャッジプロセスの作成をテスト"""
         # テスト用の提出を作成
@@ -57,6 +60,7 @@ class TestJudgeIntegration(IntegrationTestBase):
         assert process["total_cases"] == 2
         assert process["completed_cases"] == 0
 
+    @pytest.mark.asyncio
     async def test_judge_case_results(self):
         """ジャッジケース結果のテスト"""
         # ジャッジプロセスを作成
@@ -103,6 +107,7 @@ class TestJudgeIntegration(IntegrationTestBase):
         assert case_result["execution_time_ms"] == 10
         assert case_result["memory_usage_kb"] == 1024
 
+    @pytest.mark.asyncio
     async def test_submission_status_constraints(self):
         """提出ステータスの制約をテスト"""
         # 有効なステータスでの提出作成
@@ -124,6 +129,7 @@ class TestJudgeIntegration(IntegrationTestBase):
             assert len(result.data) == 1
             assert result.data[0]["status"] == status
 
+    @pytest.mark.asyncio
     async def test_language_constraints(self):
         """言語制約のテスト"""
         user = await self.get_user_by_email("test.user@example.com")
@@ -153,6 +159,7 @@ class TestJudgeIntegration(IntegrationTestBase):
             assert len(result.data) == 1
             assert result.data[0]["language"] == language
 
+    @pytest.mark.asyncio
     async def test_judge_process_completion(self):
         """ジャッジプロセス完了のテスト"""
         # 提出とプロセスを作成
@@ -194,6 +201,7 @@ class TestJudgeIntegration(IntegrationTestBase):
         assert updated_process["completed_cases"] == 2
         assert updated_process["final_verdict"] == "accepted"
 
+    @pytest.mark.asyncio
     async def test_submission_problem_relationship(self):
         """提出と問題の関係性をテスト"""
         # 既存の提出を取得
@@ -211,6 +219,7 @@ class TestJudgeIntegration(IntegrationTestBase):
 class TestJudgeDomainConstraints(IntegrationTestBase):
     """Judge domainの制約テスト"""
 
+    @pytest.mark.asyncio
     async def test_foreign_key_integrity(self):
         """外部キー整合性のテスト"""
         # 提出の外部キー制約
@@ -226,6 +235,7 @@ class TestJudgeDomainConstraints(IntegrationTestBase):
             assert submission["problem_id"] in problem_ids
             assert submission["user_id"] in user_ids
 
+    @pytest.mark.asyncio
     async def test_judge_process_submission_relationship(self):
         """ジャッジプロセスと提出の関係テスト"""
         processes_result = self.supabase.table("judge_processes").select("submission_id").execute()
@@ -236,6 +246,7 @@ class TestJudgeDomainConstraints(IntegrationTestBase):
         for process in processes_result.data:
             assert process["submission_id"] in submission_ids
 
+    @pytest.mark.asyncio
     async def test_judge_case_results_relationships(self):
         """ジャッジケース結果の関係性テスト"""
         # ジャッジケース結果がある場合のテスト
@@ -258,6 +269,7 @@ class TestJudgeDomainConstraints(IntegrationTestBase):
 class TestCrossOriginIntegration(IntegrationTestBase):
     """Core-Judge間の統合テスト"""
 
+    @pytest.mark.asyncio
     async def test_submission_to_problem_reference(self):
         """提出から問題への参照テスト"""
         # Core domainの問題を取得
@@ -283,6 +295,7 @@ class TestCrossOriginIntegration(IntegrationTestBase):
         assert submission["problem"]["title"] == "Hello World"
         assert submission["problem"]["difficulty_level"] == "beginner"
 
+    @pytest.mark.asyncio
     async def test_user_submission_history(self):
         """ユーザーの提出履歴テスト"""
         user = await self.get_user_by_email("test.user@example.com")

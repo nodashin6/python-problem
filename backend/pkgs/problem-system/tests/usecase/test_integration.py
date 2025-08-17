@@ -27,14 +27,22 @@ class TestProblemSystemIntegration:
         title = "統合テスト問題集"
         description = "統合テスト用の問題集です"
 
-        # モックエンティティの作成
-        from unittest.mock import AsyncMock, Mock
+        # 実際のエンティティの作成
+        from unittest.mock import AsyncMock
+        from ppprob.domain.entities.book import BookEntity
+        from datetime import datetime
 
-        mock_entity = Mock()
-        mock_entity.id = uuid4()
-        mock_entity.title = title
-        mock_entity.description = description
-        mock_entity.author_id = author_id
+        entity_id = uuid4()
+        mock_entity = BookEntity(
+            id=entity_id,
+            title=title,
+            description=description,
+            author_id=author_id,
+            published_at=None,
+            archived_at=None,
+            created_at=datetime.now(),
+            updated_at=datetime.now()
+        )
 
         # サービスのモック設定 (AsyncMockを使用)
         mock_book_service.create_book = AsyncMock(return_value=mock_entity)
@@ -76,14 +84,29 @@ class TestProblemSystemIntegration:
         tags = ["integration", "test"]
         content_markdown = "# 統合テスト問題\n\n統合テストの内容です。\n\n```python\nprint('test')\n```"
 
-        # モックエンティティの作成
-        mock_entity = Mock()
-        mock_entity.id = uuid4()
-        mock_entity.book_id = book_id
-        mock_entity.title = title
-        mock_entity.description = description
-        mock_entity.tags = tags
-        mock_entity.content_markdown = content_markdown
+        # 実際のエンティティの作成
+        from ppprob.domain.entities.problem import ProblemEntity
+        from ppprob.domain.enums import DifficultyLevel
+        from datetime import datetime
+
+        entity_id = uuid4()
+        mock_entity = ProblemEntity(
+            id=entity_id,
+            book_id=book_id,
+            title=title,
+            description=description,
+            tags=tags,
+            content_markdown=content_markdown,
+            difficulty=DifficultyLevel.BEGINNER,
+            author_id=uuid4(),
+            published_at=None,
+            archived_at=None,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+            content_created_at=datetime.now(),
+            content_updated_at=datetime.now(),
+            language="ja"
+        )
 
         # サービスのモック設定 (AsyncMockを使用)
         mock_problem_service.create_problem = AsyncMock(return_value=mock_entity)
@@ -127,22 +150,46 @@ class TestProblemSystemIntegration:
         book_title = "ワークフロー問題集"
         problem_count = 3
 
-        # 問題集モックエンティティ
-        mock_book = Mock()
-        mock_book.id = uuid4()
-        mock_book.title = book_title
-        mock_book.description = "ワークフロー用の問題集"
-        mock_book.author_id = author_id
+        # 問題集実際のエンティティ
+        from ppprob.domain.entities.book import BookEntity
+        from datetime import datetime
 
-        # 問題モックエンティティのリスト
+        book_id = uuid4()
+        mock_book = BookEntity(
+            id=book_id,
+            title=book_title,
+            description="ワークフロー用の問題集",
+            author_id=author_id,
+            published_at=None,
+            archived_at=None,
+            created_at=datetime.now(),
+            updated_at=datetime.now()
+        )
+
+        # 問題実際のエンティティのリスト
+        from ppprob.domain.entities.problem import ProblemEntity
+        from ppprob.domain.enums import DifficultyLevel
+        
         mock_problems = []
         for i in range(problem_count):
-            mock_problem = Mock()
-            mock_problem.id = uuid4()
-            mock_problem.book_id = mock_book.id
-            mock_problem.title = f"ワークフロー問題{i + 1}"
-            mock_problem.description = f"ワークフロー用の問題{i + 1}"
-            mock_problem.tags = ["workflow", f"problem{i + 1}"]
+            problem_id = uuid4()
+            mock_problem = ProblemEntity(
+                id=problem_id,
+                book_id=mock_book.id,
+                title=f"ワークフロー問題{i + 1}",
+                description=f"ワークフロー用の問題{i + 1}",
+                tags=["workflow", f"problem{i + 1}"],
+                content_markdown=f"# ワークフロー問題{i + 1}\n\n内容",
+                difficulty=DifficultyLevel.BEGINNER,
+                author_id=author_id,
+                published_at=None,
+                archived_at=None,
+                created_at=datetime.now(),
+                updated_at=datetime.now(),
+                content_created_at=datetime.now(),
+                content_updated_at=datetime.now(),
+                language="ja"
+            )
             mock_problems.append(mock_problem)
 
         # サービスのモック設定 (AsyncMockを使用)

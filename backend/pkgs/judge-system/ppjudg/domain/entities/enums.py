@@ -1,3 +1,5 @@
+from enum import Enum
+
 class ProgrammingLanguage(str, Enum):
     """プログラミング言語"""
 

@@ -144,7 +144,7 @@ class TestQueueSystemIntegration:
         response = await dispatcher.process_message(message)
 
         assert response.success is False
-        assert "No service for unknown" in response.error
+        assert "No service registered for message type: unknown" in response.error
 
     async def test_full_integration_runtime_failure(self, consumer, runtime, dispatcher, hello_service):
         """Test full queue system integration - runtime failure case"""

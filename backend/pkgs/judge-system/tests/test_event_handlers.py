@@ -11,9 +11,15 @@ import pytest
 
 import sys
 import os
+# Add judge-system package to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+# Add core package to path for ppcore imports
+backend_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..')
+sys.path.insert(0, os.path.join(backend_dir, 'pkgs', 'core'))
+sys.path.insert(0, os.path.join(backend_dir, 'pkgs', 'problem-system'))
+sys.path.insert(0, backend_dir)  # for src.utils import
 
-from ppjudg.const import ExecutionStatus, JudgeResultType
+from ppjudg.domain.entities.enums import ExecutionStatus, JudgeResultType
 from ppjudg.event.message_queue_handlers import (
     MessageQueueDispatcher,
     SubmissionQueueHandler,
@@ -63,6 +69,7 @@ class TestSubmissionQueueHandler:
             event_bus=mock_dependencies['event_bus']
         )
 
+    @pytest.mark.asyncio
     async def test_handle_submission_created_message_success(self, handler, mock_dependencies):
         """提出作成メッセージの正常処理テスト"""
         # テストデータ
@@ -88,6 +95,7 @@ class TestSubmissionQueueHandler:
         assert result is True
         mock_dependencies['queue_repo'].find_by_submission.assert_called_once_with(uuid.UUID(submission_id))
 
+    @pytest.mark.asyncio
     async def test_handle_submission_created_message_no_queue_item(self, handler, mock_dependencies):
         """キューアイテムが存在しない場合のテスト"""
         message = {
@@ -107,6 +115,7 @@ class TestSubmissionQueueHandler:
         assert result is False
         mock_dependencies['event_bus'].publish.assert_called()
 
+    @pytest.mark.asyncio
     async def test_handle_judge_request_message_success(self, handler, mock_dependencies):
         """ジャッジリクエストメッセージの正常処理テスト"""
         # テストデータ
@@ -147,6 +156,7 @@ class TestSubmissionQueueHandler:
         mock_dependencies['submission_repo'].save.assert_called_once_with(mock_submission)
         mock_dependencies['event_bus'].publish.assert_called()
 
+    @pytest.mark.asyncio
     async def test_handle_rejudge_request_message(self, handler, mock_dependencies):
         """再ジャッジリクエストメッセージのテスト"""
         submission_id = str(uuid.uuid4())
@@ -190,6 +200,7 @@ class TestJudgeWorkerEventHandler:
             event_bus=mock_dependencies['event_bus']
         )
 
+    @pytest.mark.asyncio
     async def test_handle_worker_status_heartbeat(self, handler, mock_dependencies):
         """ワーカーハートビートメッセージのテスト"""
         message = {
@@ -200,6 +211,7 @@ class TestJudgeWorkerEventHandler:
         result = await handler.handle_worker_status_message(message)
         assert result is True
 
+    @pytest.mark.asyncio
     async def test_handle_worker_status_shutdown(self, handler, mock_dependencies):
         """ワーカーシャットダウンメッセージのテスト"""
         message = {
@@ -222,6 +234,7 @@ class TestJudgeWorkerEventHandler:
             assert item.status == ExecutionStatus.PENDING
             assert item.worker_id is None
 
+    @pytest.mark.asyncio
     async def test_handle_queue_maintenance_cleanup_stale(self, handler, mock_dependencies):
         """スタックしたアイテムのクリーンアップテスト"""
         message = {
@@ -244,6 +257,7 @@ class TestMessageQueueDispatcher:
     def dispatcher(self):
         return MessageQueueDispatcher()
 
+    @pytest.mark.asyncio
     async def test_dispatch_submission_created(self, dispatcher):
         """提出作成メッセージのディスパッチテスト"""
         message = {
@@ -262,6 +276,7 @@ class TestMessageQueueDispatcher:
         assert result is True
         mock_handler.handle_submission_created_message.assert_called_once_with(message)
 
+    @pytest.mark.asyncio
     async def test_dispatch_judge_request(self, dispatcher):
         """ジャッジリクエストメッセージのディスパッチテスト"""
         message = {
@@ -278,6 +293,7 @@ class TestMessageQueueDispatcher:
         assert result is True
         mock_handler.handle_judge_request_message.assert_called_once_with(message)
 
+    @pytest.mark.asyncio
     async def test_dispatch_unknown_message_type(self, dispatcher):
         """未知のメッセージタイプのテスト"""
         message = {
@@ -308,6 +324,7 @@ class TestDomainEventHandlers:
     def mock_submission_use_case(self):
         return AsyncMock()
 
+    @pytest.mark.asyncio
     async def test_core_domain_handler_problem_created(self, mock_event_bus, mock_submission_use_case):
         """問題作成イベントハンドリングのテスト"""
         handler = CoreDomainEventHandler(
@@ -330,6 +347,7 @@ class TestDomainEventHandlers:
         await handler.handle_problem_created(event)
         # イベントが正常に処理されることを確認（エラーが発生しない）
 
+    @pytest.mark.asyncio
     async def test_judge_system_handler_judge_completed(self, mock_event_bus):
         """ジャッジ完了イベントハンドリングのテスト"""
         mock_worker_use_case = AsyncMock()

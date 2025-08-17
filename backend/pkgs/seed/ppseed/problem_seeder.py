@@ -29,7 +29,9 @@ class ProblemSeeder:
 
     def __init__(self):
         """Supabaseクライアントを初期化"""
-        self.supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+        from supabase import ClientOptions
+        options = ClientOptions()
+        self.supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY, options=options)
 
     async def seed_problems_complete(
         self,

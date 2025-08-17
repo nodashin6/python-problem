@@ -4,12 +4,13 @@ System-wide integration tests
 """
 
 import pytest
-from tests.conftest import IntegrationTestBase
+from conftest import IntegrationTestBase
 
 
 class TestSystemIntegration(IntegrationTestBase):
     """システム全体の統合テスト"""
 
+    @pytest.mark.asyncio
     async def test_complete_submission_workflow(self):
         """完全な提出ワークフローのテスト"""
         # 1. ユーザーと問題を取得
@@ -92,6 +93,7 @@ class TestSystemIntegration(IntegrationTestBase):
         assert final_process["final_verdict"] == "accepted"
         assert final_process["completed_cases"] == len(judge_cases.data)
 
+    @pytest.mark.asyncio
     async def test_multiple_users_same_problem(self):
         """複数ユーザーが同じ問題に提出するテスト"""
         # ユーザーと問題を取得
@@ -116,6 +118,7 @@ class TestSystemIntegration(IntegrationTestBase):
         assert submission1["problem_id"] == submission2["problem_id"]
         assert submission1["id"] != submission2["id"]
 
+    @pytest.mark.asyncio
     async def test_problem_with_multiple_languages(self):
         """複数言語での提出テスト"""
         user = await self.get_user_by_email("test.user@example.com")
@@ -143,6 +146,7 @@ class TestSystemIntegration(IntegrationTestBase):
             assert submission["language"] == expected_language
             assert submission["source_code"] == expected_code
 
+    @pytest.mark.asyncio
     async def test_book_problems_hierarchy(self):
         """書籍-問題の階層構造テスト"""
         # 書籍と関連問題を取得
@@ -170,6 +174,7 @@ class TestSystemIntegration(IntegrationTestBase):
                     if content.data:
                         assert content.data[0]["statement"] is not None
 
+    @pytest.mark.asyncio
     async def test_user_progress_tracking(self):
         """ユーザーの進捗追跡テスト"""
         user = await self.get_user_by_email("test.user@example.com")
@@ -201,6 +206,7 @@ class TestSystemIntegration(IntegrationTestBase):
         assert completed_submissions <= total_submissions
         assert all(stats["completed"] <= stats["total"] for stats in difficulty_stats.values())
 
+    @pytest.mark.asyncio
     async def test_judge_case_type_distribution(self):
         """ジャッジケースタイプの分布テスト"""
         # 全問題のジャッジケースタイプを確認
@@ -235,6 +241,7 @@ class TestSystemIntegration(IntegrationTestBase):
 class TestSystemPerformance(IntegrationTestBase):
     """システムパフォーマンステスト"""
 
+    @pytest.mark.asyncio
     async def test_bulk_submission_handling(self):
         """大量提出の処理テスト"""
         user = await self.get_user_by_email("test.user@example.com")
@@ -262,6 +269,7 @@ class TestSystemPerformance(IntegrationTestBase):
             assert submission is not None
             assert submission["status"] == "pending"
 
+    @pytest.mark.asyncio
     async def test_complex_query_performance(self):
         """複雑なクエリのパフォーマンステスト"""
         # 複数テーブルを結合するクエリ

@@ -25,7 +25,7 @@ from .shared.domain_supabase_mixin import DomainSupabaseMixin
 logger = get_logger(__name__)
 
 
-class ProblemRepository(DomainSupabaseMixin, ProblemRepositoryBase):
+class ProblemRepositoryImpl(DomainSupabaseMixin, ProblemRepositoryBase):
     """Problem リポジトリの Supabase 実装"""
 
     table_name = "problem_headers"
@@ -52,6 +52,15 @@ class ProblemRepository(DomainSupabaseMixin, ProblemRepositoryBase):
         # selectメソッドを活用
         problems = await self.select(limit=1, id=id)
         return problems[0] if problems else None
+
+    def read_optional(self, id):
+        """Read a problem by its ID, returning None if not found."""
+        try:
+            # Note: This should be async but keeping sync for interface compatibility
+            import asyncio
+            return asyncio.run(self.read(id))
+        except Exception as e:
+            return None
 
     async def update(self, id, schema: UpdateProblemSchema):
         """Update a problem by its ID."""
@@ -228,3 +237,6 @@ class ProblemRepository(DomainSupabaseMixin, ProblemRepositoryBase):
             content_updated_at=schema.content_updated_at,
             language=schema.language,
         )
+
+
+__all__ = ["ProblemRepositoryImpl"]

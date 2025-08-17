@@ -20,15 +20,15 @@ from ..dependencies import (
     get_read_published_books_usecase,
     get_read_published_problems_usecase,
 )
-from ..usecase.create_book_usecase import CreateBookCommand, CreateBookUseCase
-from ..usecase.create_problem_usecase import CreateProblemCommand, CreateProblemUseCase
-from ..usecase.read_book_usecase import (
+from ...usecase.create_book_usecase import CreateBookCommand, CreateBookUseCase
+from ...usecase.create_problem_usecase import CreateProblemCommand, CreateProblemUseCase
+from ...usecase.read_book_usecase import (
     ReadBookByIdCommand,
     ReadBookByIdUseCase,
     ReadPublishedBooksCommand,
     ReadPublishedBooksUseCase,
 )
-from ..usecase.read_problem_usecase import (
+from ...usecase.read_problem_usecase import (
     ReadProblemByIdCommand,
     ReadProblemByIdUseCase,
     ReadProblemsByBookIdCommand,
@@ -115,6 +115,8 @@ async def create_book(
 
     # Note: Since the result doesn't contain all fields, we need to fetch the book again
     # In a real implementation, you might want to include more fields in the result
+    from datetime import datetime
+    now = datetime.now()
     return BookResponse(
         id=result.book_id,
         title=result.title,
@@ -122,8 +124,8 @@ async def create_book(
         author_id=result.author_id,
         published_at=None,  # New books are not published by default
         archived_at=None,
-        created_at=None,  # Would be populated from entity
-        updated_at=None,  # Would be populated from entity
+        created_at=now,  # Set to current time for new books
+        updated_at=now,  # Set to current time for new books
     )
 
 
@@ -206,6 +208,8 @@ async def create_problem(
     )
     result = await usecase.execute(command)
 
+    from datetime import datetime
+    now = datetime.now()
     return ProblemResponse(
         id=result.problem_id,
         book_id=result.book_id,
@@ -214,6 +218,6 @@ async def create_problem(
         tags=result.tags,
         published_at=None,  # New problems are not published by default
         archived_at=None,
-        created_at=None,  # Would be populated from entity
-        updated_at=None,  # Would be populated from entity
+        created_at=now,  # Set to current time for new problems
+        updated_at=now,  # Set to current time for new problems
     )

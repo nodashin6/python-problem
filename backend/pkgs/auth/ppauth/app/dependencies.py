@@ -51,10 +51,11 @@ async def get_user_service(
 ) -> UserService:
     """Get user service"""
     # For now, create Supabase client directly until ppcore integration is complete
-    from supabase import create_client, Client
+    from supabase import create_client, Client, ClientOptions
     from ..infrastructure.supabase.repositories.user_repository_impl import UserRepository
     
-    client: Client = create_client(db_config.url, db_config.key)
+    options = ClientOptions()
+    client: Client = create_client(db_config.url, db_config.key, options=options)
     user_repo = UserRepository(client)
     auth_service = await get_auth_service()
 
@@ -109,13 +110,14 @@ async def get_read_active_users_usecase(
 ) -> ReadActiveUsersUseCase:
     """Get read active users use case"""
     # For now, create Supabase client directly until ppcore integration is complete
-    from supabase import create_client
+    from supabase import create_client, ClientOptions
     from ..infrastructure.supabase.repositories.user_aggregate_read_repository_impl import (
-        UserAggregateReadRepositoryImpl,
+        UserAggregateReadRepository,
     )
 
-    client = create_client(db_config.url, db_config.key)
-    user_aggregate_repo = UserAggregateReadRepositoryImpl(client)
+    options = ClientOptions()
+    client = create_client(db_config.url, db_config.key, options=options)
+    user_aggregate_repo = UserAggregateReadRepository(client)
 
     return ReadActiveUsersUseCase(user_aggregate_repo=user_aggregate_repo)
 

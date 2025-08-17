@@ -10,12 +10,26 @@ from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import Any
 
-from ...const import ExecutionStatus
-from ...core.domain.repositories.problem_repository import ProblemRepository
-from ...shared.events import DomainEventBus, SubmissionJudgedEvent
-from ..domain.repositories.code_execution_repository import CodeExecutionRepository
-from ..domain.repositories.judge_queue_repository import JudgeQueueRepository
-from ..domain.repositories.submission_repository import SubmissionRepository
+from ..domain.entities.enums import ExecutionStatus
+# from ...core.domain.repositories.problem_repository import ProblemRepository  # Replaced with protocol
+# from ...shared.events import DomainEventBus, SubmissionJudgedEvent  # Replaced with local definitions
+
+# Local protocols and classes to avoid cross-package dependencies
+from typing import Protocol
+
+class ProblemRepository(Protocol):
+    async def find_by_id(self, problem_id): ...
+
+class DomainEventBus(Protocol):
+    async def publish(self, event): ...
+
+class SubmissionJudgedEvent:
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+from ..domain.repositories.code_execution_repository import CodeExecutionRepositoryBase as CodeExecutionRepository
+from ..domain.repositories.judge_queue_repository import JudgeQueueRepositoryBase as JudgeQueueRepository
+from ..domain.repositories.submission_repository import SubmissionRepositoryBase as SubmissionRepository
 from ..domain.services.judge_service import JudgeDomainService
 from .code_execution_use_case import JudgeQueueUseCase
 from .submission_use_case import SubmissionJudgeUseCase

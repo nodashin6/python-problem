@@ -13,18 +13,18 @@ from datetime import datetime
 from dependency_injector.wiring import Provide, inject
 
 from ..domain.models import Submission, JudgeQueue
-from ..domain.repositories.submission_repository import SubmissionRepository
-from ..domain.repositories.judge_queue_repository import JudgeQueueRepository
+from ..domain.repositories.submission_repository import SubmissionRepositoryBase as SubmissionRepository
+from ..domain.repositories.judge_queue_repository import JudgeQueueRepositoryBase as JudgeQueueRepository
 from ..domain.services.judge_service import JudgeDomainService
-from ...core.domain.repositories.problem_repository import ProblemRepository
-from ...core.domain.repositories.user_repository import UserRepository
-from ...const import (
+# from ppcore.domain.repositories.problem_repository import ProblemRepository
+# from ppcore.domain.repositories.user_repository import UserRepository
+from ..domain.entities.enums import (
     ProgrammingLanguage as Language,
     JudgeResultType as JudgeResult,
     ExecutionStatus,
 )
-from ...shared.events import EventBus, SubmissionCreatedEvent
-from ...shared.logging import get_logger
+# from ppcore.shared.events import EventBus, SubmissionCreatedEvent
+from src.utils import get_logger
 
 from ..app.container import JudgeContainer
 

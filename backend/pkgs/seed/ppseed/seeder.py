@@ -18,12 +18,15 @@ class DatabaseSeeder:
 
     def __init__(self, supabase_url: str = None, supabase_key: str = None):
         """Supabaseクライアントを初期化"""
+        from supabase import ClientOptions
+        options = ClientOptions()
+        
         if supabase_url and supabase_key:
-            self.supabase: Client = create_client(supabase_url, supabase_key)
+            self.supabase: Client = create_client(supabase_url, supabase_key, options=options)
         else:
             try:
                 from src.env import SUPABASE_SERVICE_KEY, SUPABASE_URL
-                self.supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+                self.supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY, options=options)
             except ImportError:
                 raise ImportError("Either provide supabase_url and supabase_key parameters or ensure src.env module is available")
 
@@ -59,12 +62,24 @@ class DatabaseSeeder:
 
         # 2. User roles
         if sample_data.get("user_roles"):
-            result = (
-                self.supabase.table("user_roles")
-                .upsert(sample_data["user_roles"], on_conflict="user_id")
-                .execute()
-            )
-            logger.info(f"User roles seeded: {len(result.data)} records")
+            # user_roles may not have a unique constraint on user_id, so check and insert individually
+            for role_data in sample_data["user_roles"]:
+                try:
+                    # Check if role already exists for this user
+                    existing = (
+                        self.supabase.table("user_roles")
+                        .select("id")
+                        .eq("user_id", role_data["user_id"])
+                        .eq("role", role_data["role"])
+                        .execute()
+                    )
+                    
+                    if not existing.data:
+                        # Insert only if it doesn't exist
+                        result = self.supabase.table("user_roles").insert(role_data).execute()
+                except Exception as e:
+                    logger.warning(f"User role insert failed: {e}")
+            logger.info(f"User roles seeded: {len(sample_data['user_roles'])} records")
 
         # 3. Books
         if sample_data.get("books"):

@@ -14,8 +14,8 @@ from ppcore.domain.client_protocols import DBClient
 from ppcore.domain.protocols.database_protocols import DatabaseTransaction
 
 
-class TestEntity(BaseEntity):
-    """Test entity for repository tests"""
+class DummyEntity(BaseEntity):
+    """Dummy entity for repository tests"""
     name: str
     email: str
 
@@ -25,7 +25,9 @@ class MockDBClient(DBClient):
     
     def __init__(self):
         self.queries = []
+        self.commands = []
         self.data = {}
+        self.in_transaction = False
         
     async def execute_query(self, query: str, params=None):
         self.queries.append((query, params))
@@ -53,16 +55,29 @@ class MockDBClient(DBClient):
             entity_id = params.get("id") if params else None
             return [{"1": 1}] if entity_id in self.data else []
         return []
+    
+    async def execute_command(self, command: str, params=None) -> int:
+        self.commands.append((command, params))
+        return 1  # Mock affected rows
+    
+    async def begin_transaction(self) -> None:
+        self.in_transaction = True
+    
+    async def commit_transaction(self) -> None:
+        self.in_transaction = False
+    
+    async def rollback_transaction(self) -> None:
+        self.in_transaction = False
 
 
-class TestRepository(DatabaseRepositoryBase):
+class DummyRepository(DatabaseRepositoryBase):
     """Concrete repository implementation for testing"""
     
     def get_table_name(self) -> str:
         return "test_entities"
     
-    def get_entity_type(self) -> Type[TestEntity]:
-        return TestEntity
+    def get_entity_type(self) -> Type[DummyEntity]:
+        return DummyEntity
 
 
 class TestDatabaseRepositoryBase:
@@ -74,11 +89,11 @@ class TestDatabaseRepositoryBase:
 
     @pytest.fixture
     def repository(self, mock_client):
-        return TestRepository(mock_client)
+        return DummyRepository(mock_client)
 
     @pytest.fixture
     def test_entity(self):
-        return TestEntity(
+        return DummyEntity(
             id=uuid4(),
             name="Test User",
             email="test@example.com",
@@ -198,7 +213,7 @@ class TestDatabaseRepositoryBase:
 
     def test_get_entity_type(self, repository):
         """Test getting entity type"""
-        assert repository.get_entity_type() == TestEntity
+        assert repository.get_entity_type() == DummyEntity
 
     def test_map_to_entity(self, repository):
         """Test mapping database row to entity"""
@@ -212,6 +227,6 @@ class TestDatabaseRepositoryBase:
         
         entity = repository._map_to_entity(row)
         
-        assert isinstance(entity, TestEntity)
+        assert isinstance(entity, DummyEntity)
         assert entity.name == "Test User"
         assert entity.email == "test@example.com"

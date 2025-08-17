@@ -311,9 +311,16 @@ class TestDependencyInjection:
     async def test_get_read_active_users_usecase(self):
         """Test get_read_active_users_usecase dependency"""
         from ppauth.app.dependencies import get_read_active_users_usecase
+        from ppauth.domain.protocols.configuration_protocols import DatabaseConfig
+
+        # Create mock database config
+        mock_db_config = DatabaseConfig(
+            url="https://mock.supabase.co",
+            key="mock_key"
+        )
 
         # Execute
-        usecase = await get_read_active_users_usecase()
+        usecase = await get_read_active_users_usecase(mock_db_config)
 
         # Assert - Should return a proper instance now
         assert usecase is not None

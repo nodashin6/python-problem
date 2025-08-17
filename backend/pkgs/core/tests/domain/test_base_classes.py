@@ -97,8 +97,9 @@ class TestBaseModel:
     """Test BaseModel functionality"""
 
     def test_abstract_class(self):
-        """Test that BaseModel is abstract"""
-        with pytest.raises(TypeError):
+        """Test that BaseModel cannot be instantiated without required fields"""
+        from pydantic import ValidationError
+        with pytest.raises(ValidationError):
             BaseModel()
 
     def test_concrete_implementation(self):

@@ -44,11 +44,18 @@ class TestInfrastructureDependencies:
 
         # Assert
         assert result == mock_client
-        mock_create_client.assert_called_once_with("https://test.supabase.co", "test_key")
+        # Check that create_client was called with the expected parameters
+        assert mock_create_client.call_count == 1
+        call_args = mock_create_client.call_args
+        assert call_args[0] == ("https://test.supabase.co", "test_key")
+        assert "options" in call_args[1]  # ClientOptions should be passed as keyword argument
 
     @patch.dict("os.environ", {}, clear=True)
     def test_get_supabase_client_missing_env_vars(self):
         """環境変数が不足している場合のテスト"""
+        # キャッシュをクリアしてテストの分離を確保
+        get_supabase_client.cache_clear()
+        
         # Act & Assert
         with pytest.raises(ValueError, match="SUPABASE_URL and SUPABASE_ANON_KEY must be set"):
             get_supabase_client()
@@ -109,20 +116,20 @@ class TestServiceDependencies:
         """モックDomainConfig"""
         return Mock()
 
-    def test_get_book_service(self, mock_book_repository, mock_domain_config):
+    def test_get_book_service(self, mock_book_repository):
         """BookService取得のテスト"""
         # Act
-        result = get_book_service(mock_book_repository, mock_domain_config)
+        result = get_book_service(mock_book_repository)
 
         # Assert
         assert result is not None
         # BookServiceのインスタンスかどうかを確認
         assert hasattr(result, "__class__")
 
-    def test_get_problem_service(self, mock_problem_repository, mock_domain_config):
+    def test_get_problem_service(self, mock_problem_repository):
         """ProblemService取得のテスト"""
         # Act
-        result = get_problem_service(mock_problem_repository, mock_domain_config)
+        result = get_problem_service(mock_problem_repository)
 
         # Assert
         assert result is not None

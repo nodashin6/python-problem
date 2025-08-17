@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from ppjudg.const import ExecutionStatus, JudgeResultType, ProgrammingLanguage
+from ppjudg.domain.entities.enums import ExecutionStatus, JudgeResultType, ProgrammingLanguage
 from ppjudg.usecase.api_submission_usecase import ApiSubmissionUseCase
 from ppjudg.usecase.api_system_usecase import ApiSystemUseCase
 

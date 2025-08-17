@@ -113,16 +113,30 @@ class MockJWTEncoder(JWTEncoder):
         self.encoded_tokens = []
         self.decoded_tokens = {}
     
+    def encode_claims(self, claims) -> str:
+        """Encode claims to JWT string"""
+        token = f"encoded_{hash(str(claims.to_dict()))}"
+        self.encoded_tokens.append((claims, token))
+        self.decoded_tokens[token] = claims
+        return token
+    
+    def decode_token(self, token: str, secret: str = None):
+        """Decode JWT string to claims - supports both old and new interface"""
+        if token in self.decoded_tokens:
+            return self.decoded_tokens[token]
+        if secret is None:
+            # New interface - return None for invalid tokens
+            return None
+        else:
+            # Legacy interface - raise ValueError for invalid tokens
+            raise ValueError("Invalid token")
+    
+    # Legacy methods for backward compatibility with tests
     def encode_token(self, payload: Dict[str, Any], secret: str, algorithm: str = "HS256") -> str:
         token = f"encoded_{hash(str(payload))}_{secret}_{algorithm}"
         self.encoded_tokens.append((payload, secret, algorithm, token))
         self.decoded_tokens[token] = payload
         return token
-    
-    def decode_token(self, token: str, secret: str, algorithm: str = "HS256") -> Dict[str, Any]:
-        if token in self.decoded_tokens:
-            return self.decoded_tokens[token]
-        raise ValueError("Invalid token")
 
 
 class MockLogger(Logger):
