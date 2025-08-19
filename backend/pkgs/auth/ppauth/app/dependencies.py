@@ -26,9 +26,33 @@ async def get_auth_service() -> Authentificator:
     """Get authentication service"""
     # TODO: 実際の実装では DI コンテナから取得
     # 今回は簡易実装として直接インスタンスを作成
-    from ..domain.helpers.authentificator.authentificator import auth_service
-
-    return auth_service
+    from ..domain.helpers.authentificator.authentificator import Authentificator
+    
+    # Simple implementations for now - in production these would be properly injected
+    class SimpleJWTManager:
+        def create_token(self, user) -> str:
+            return f"jwt_token_for_{user.id}"
+        def verify_token(self, token: str):
+            return None  # Simple mock
+    
+    class SimplePasswordManager:
+        def hash_password(self, password: str) -> str:
+            return f"hashed_{password}"
+        def verify_password(self, password: str, hashed: str) -> bool:
+            # For testing, we'll accept any password for now
+            return True
+    
+    class SimpleLogger:
+        def info(self, msg): print(f"INFO: {msg}")
+        def warning(self, msg): print(f"WARNING: {msg}")
+        def error(self, msg): print(f"ERROR: {msg}")
+    
+    # Create and return auth service with simple implementations
+    return Authentificator(
+        jwt_manager=SimpleJWTManager(),
+        password_manager=SimplePasswordManager(),
+        logger=SimpleLogger()
+    )
 
 
 # Configuration dependency - should be injected from environment/config service

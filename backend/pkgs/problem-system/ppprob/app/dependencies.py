@@ -10,7 +10,8 @@ import os
 from functools import lru_cache
 
 from fastapi import Depends
-from supabase import Client, create_client
+from supabase import Client
+from ppcore.infrastructure.supabase.client import create_client
 
 from ..domain.models.domain_config import DomainConfig
 from ..domain.repositories.book_repository import BookRepositoryBase
@@ -35,16 +36,8 @@ from ..usecase.read_problem_usecase import (
 
 @lru_cache
 def get_supabase_client() -> Client:
-    """Get Supabase client"""
-    supabase_url = os.getenv("SUPABASE_URL")
-    supabase_key = os.getenv("SUPABASE_ANON_KEY")
-
-    if not supabase_url or not supabase_key:
-        raise ValueError("SUPABASE_URL and SUPABASE_ANON_KEY must be set")
-
-    from supabase import ClientOptions
-    options = ClientOptions()
-    return create_client(supabase_url, supabase_key, options=options)
+    """Get Supabase client using enhanced auto-loading client"""
+    return create_client()
 
 
 @lru_cache
