@@ -29,19 +29,10 @@ from ppjudg.event.domain_event_handlers import (
     CoreDomainEventHandler,
     JudgeSystemEventHandler
 )
-
-# Mock the events since they come from shared
-class MockEvent:
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        self.data = kwargs
-
-class JudgeCompletedEvent(MockEvent):
-    pass
-
-class ProblemCreatedEvent(MockEvent):
-    pass
+from ppjudg.event.events import (
+    JudgeCompletedEvent,
+    ProblemCreatedEvent,
+)
 
 
 class TestSubmissionQueueHandler:
@@ -125,7 +116,7 @@ class TestSubmissionQueueHandler:
         message = {
             "submission_id": submission_id,
             "worker_id": worker_id,
-            "correlation_id": "corr_001"
+            "correlation_id": str(uuid.uuid4())
         }
 
         # モック設定
@@ -155,6 +146,10 @@ class TestSubmissionQueueHandler:
         mock_dependencies['judge_service'].process_submission.assert_called_once_with(mock_submission, mock_judge_cases)
         mock_dependencies['submission_repo'].save.assert_called_once_with(mock_submission)
         mock_dependencies['event_bus'].publish.assert_called()
+        # Check that the published event is of the correct type
+        published_event = mock_dependencies['event_bus'].publish.call_args[0][0]
+        assert isinstance(published_event, JudgeCompletedEvent)
+        assert published_event.submission_id == submission_id
 
     @pytest.mark.asyncio
     async def test_handle_rejudge_request_message(self, handler, mock_dependencies):
@@ -336,13 +331,8 @@ class TestDomainEventHandlers:
             problem_id=str(uuid.uuid4()),
             title="Test Problem", 
             difficulty="easy",
-            correlation_id=str(uuid.uuid4())
+            correlation_id=uuid.uuid4()
         )
-        event.data = {
-            "problem_id": event.problem_id,
-            "title": event.title,
-            "difficulty": event.difficulty
-        }
 
         await handler.handle_problem_created(event)
         # イベントが正常に処理されることを確認（エラーが発生しない）
@@ -363,15 +353,8 @@ class TestDomainEventHandlers:
             result="ACCEPTED",
             score=100,
             user_id=str(uuid.uuid4()),
-            correlation_id=str(uuid.uuid4())
+            correlation_id=uuid.uuid4()
         )
-        event.data = {
-            "judge_id": event.judge_id,
-            "submission_id": event.submission_id,
-            "result": event.result,
-            "score": event.score,
-            "user_id": event.user_id
-        }
 
         await handler.handle_judge_completed(event)
         # イベントが正常に処理されることを確認

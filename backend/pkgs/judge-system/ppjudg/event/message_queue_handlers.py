@@ -12,6 +12,7 @@ from typing import Any
 
 from dependency_injector.wiring import Provide, inject
 
+from .events import JudgeCompletedEvent, JudgeErrorEvent
 from typing import Protocol
 from ..domain.entities.enums import ExecutionStatus, JudgeResultType
 
@@ -24,18 +25,6 @@ class ProblemRepository(Protocol):
 class EventBus(Protocol):
     """Event bus protocol - local definition"""
     async def publish(self, event): ...
-
-class JudgeCompletedEvent:
-    """Judge completed event - local definition"""
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-class JudgeErrorEvent:
-    """Judge error event - local definition"""
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
 
 def get_logger(name):
     """Simple logger function - local definition"""
@@ -72,7 +61,7 @@ class MessageQueueEventHandler:
                 submission_id=context.get("submission_id", "unknown"),
                 error=error,
                 context=context,
-                correlation_id=str(uuid.uuid4()),
+                correlation_id=uuid.uuid4(),
             )
             await self.event_bus.publish(error_event)
         except Exception as e:
@@ -195,13 +184,15 @@ class SubmissionQueueHandler(MessageQueueEventHandler):
                 logger.info(f"Judge request completed successfully: {submission_id}")
 
                 # 完了イベントを発行
+                corr_id_str = message.get("correlation_id")
+                correlation_id = uuid.UUID(corr_id_str) if corr_id_str else uuid.uuid4()
                 completed_event = JudgeCompletedEvent(
-                    judge_id=str(uuid.uuid4()),
+                    judge_id=str(uuid.uuid4()),  # This should probably be a real ID from the judge process
                     submission_id=str(submission_id),
                     result=submission.overall_result.value,
                     score=submission.total_points,
                     user_id=str(submission.user_id),
-                    correlation_id=message.get("correlation_id", str(uuid.uuid4())),
+                    correlation_id=correlation_id,
                 )
                 await self.event_bus.publish(completed_event)
 

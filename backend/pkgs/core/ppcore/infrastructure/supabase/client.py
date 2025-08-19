@@ -30,7 +30,7 @@ def create_client(config: DatabaseConfig = None) -> Client:
 
         # テスト環境ではSERVICE_KEYを優先
         config = DatabaseConfig(
-            url=os.getenv("SUPABASE_URL", "http://localhost:54221"),
+            url=os.getenv("SUPABASE_URL", "http://127.0.0.1:54221"),
             key=service_key if service_key else anon_key,
         )
 

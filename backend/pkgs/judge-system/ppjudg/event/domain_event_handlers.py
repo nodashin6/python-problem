@@ -10,6 +10,17 @@ from typing import Any
 
 from dependency_injector.wiring import Provide, inject
 
+from .events import (
+    JudgeCaseUpdatedEvent,
+    JudgeCompletedEvent,
+    JudgeErrorEvent,
+    JudgeStartedEvent,
+    ProblemCreatedEvent,
+    ProblemUpdatedEvent,
+    SubmissionCreatedEvent,
+    UserRegisteredEvent,
+)
+
 # Local definitions to avoid cross-package dependencies
 from typing import Protocol
 
@@ -21,47 +32,6 @@ class DomainType:
 class EventBus(Protocol):
     """Event bus protocol - local definition"""
     async def publish(self, event): ...
-
-# Event classes - local definitions
-class JudgeCaseUpdatedEvent:
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-class JudgeCompletedEvent:
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-class JudgeErrorEvent:
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-class JudgeStartedEvent:
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-class ProblemCreatedEvent:
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-class ProblemUpdatedEvent:
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-class SubmissionCreatedEvent:
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-class UserRegisteredEvent:
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
 
 # Local logger function
 def get_logger(name):
@@ -123,9 +93,9 @@ class CoreDomainEventHandler:
     async def handle_problem_created(self, event: ProblemCreatedEvent):
         """問題作成イベントの処理"""
         try:
-            problem_id = event.data["problem_id"]
-            title = event.data["title"]
-            difficulty = event.data["difficulty"]
+            problem_id = event.problem_id
+            title = event.title
+            difficulty = event.difficulty
 
             logger.info(f"Handling problem created: {problem_id} - {title}")
 
@@ -141,8 +111,8 @@ class CoreDomainEventHandler:
     async def handle_problem_updated(self, event: ProblemUpdatedEvent):
         """問題更新イベントの処理"""
         try:
-            problem_id = event.data["problem_id"]
-            changes = event.data["changes"]
+            problem_id = event.problem_id
+            changes = event.changes
 
             logger.info(f"Handling problem updated: {problem_id}")
 
@@ -160,8 +130,8 @@ class CoreDomainEventHandler:
     async def handle_judge_case_updated(self, event: JudgeCaseUpdatedEvent):
         """ジャッジケース更新イベントの処理"""
         try:
-            problem_id = event.data["problem_id"]
-            judge_case_id = event.data["judge_case_id"]
+            problem_id = event.problem_id
+            judge_case_id = event.judge_case_id
 
             logger.info(f"Handling judge case updated: {judge_case_id} for problem {problem_id}")
 
@@ -175,8 +145,8 @@ class CoreDomainEventHandler:
     async def handle_user_registered(self, event: UserRegisteredEvent):
         """ユーザー登録イベントの処理"""
         try:
-            user_id = event.data["user_id"]
-            user_name = event.data["user_name"]
+            user_id = event.user_id
+            user_name = event.user_name
 
             logger.info(f"Handling user registered: {user_id} ({user_name})")
 
@@ -235,9 +205,9 @@ class JudgeSystemEventHandler:
     async def handle_submission_created(self, event: SubmissionCreatedEvent):
         """提出作成イベントの処理"""
         try:
-            submission_id = event.data["submission_id"]
-            user_id = event.data["user_id"]
-            problem_id = event.data["problem_id"]
+            submission_id = event.submission_id
+            user_id = event.user_id
+            problem_id = event.problem_id
 
             logger.info(
                 f"Handling submission created: {submission_id} by user {user_id} for problem {problem_id}"
@@ -252,8 +222,8 @@ class JudgeSystemEventHandler:
     async def handle_judge_started(self, event: JudgeStartedEvent):
         """ジャッジ開始イベントの処理"""
         try:
-            judge_id = event.data["judge_id"]
-            submission_id = event.data["submission_id"]
+            judge_id = event.judge_id
+            submission_id = event.submission_id
 
             logger.info(f"Judge started: {judge_id} for submission {submission_id}")
 
@@ -266,10 +236,10 @@ class JudgeSystemEventHandler:
     async def handle_judge_completed(self, event: JudgeCompletedEvent):
         """ジャッジ完了イベントの処理"""
         try:
-            judge_id = event.data["judge_id"]
-            submission_id = event.data["submission_id"]
-            result = event.data["result"]
-            score = event.data.get("score")
+            judge_id = event.judge_id
+            submission_id = event.submission_id
+            result = event.result
+            score = event.score
 
             logger.info(f"Judge completed: {judge_id} for submission {submission_id} - Result: {result}")
 
@@ -280,7 +250,7 @@ class JudgeSystemEventHandler:
             await self._update_contest_standings_if_needed(submission_id, result, score)
 
             # ユーザー統計の更新
-            await self._update_user_statistics(event.data["user_id"], result, score)
+            await self._update_user_statistics(event.user_id, result, score)
 
         except Exception as e:
             logger.error(f"Failed to handle judge completed event: {e}")
@@ -288,9 +258,9 @@ class JudgeSystemEventHandler:
     async def handle_judge_error(self, event: JudgeErrorEvent):
         """ジャッジエラーイベントの処理"""
         try:
-            judge_id = event.data["judge_id"]
-            submission_id = event.data["submission_id"]
-            error = event.data["error"]
+            judge_id = event.judge_id
+            submission_id = event.submission_id
+            error = event.error
 
             logger.error(f"Judge error: {judge_id} for submission {submission_id} - Error: {error}")
 
